@@ -4936,6 +4936,7 @@ class GridSlice : public std::vector<GridPart*> {
 		HumNum       getMeasureDuration (void);
 		HumNum       getMeasureTimestamp(void);
 		GridMeasure* getMeasure         (void);
+		void         setMeasure         (GridMeasure* measure);
 		void         invalidate         (void);
 
 		void transferSides        (HumdrumLine& line, GridStaff& sides,

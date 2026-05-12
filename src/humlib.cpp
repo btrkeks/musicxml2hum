@@ -9848,6 +9848,9 @@ bool GridMeasure::isMonophonicMeasure(void) {
 				GridStaff* staff = part->at(s);
 				for (int v=0; v<(int)staff->size(); v++) {
 					GridVoice* voice = staff->at(v);
+					if (!voice) {
+						continue;
+					}
 					HTp token = voice->getToken();
 					if (!token) {
 						return false;
@@ -9896,6 +9899,9 @@ bool GridMeasure::isSingleChordMeasure(void) {
 				GridStaff* staff = part->at(s);
 				for (int v=0; v<(int)staff->size(); v++) {
 					GridVoice* voice = staff->at(v);
+					if (!voice) {
+						continue;
+					}
 					HTp token = voice->getToken();
 					if (!token) {
 						return false;
@@ -9930,6 +9936,9 @@ bool GridMeasure::isInvisible(void) {
 				GridStaff* staff = part->at(s);
 				for (int v=0; v<(int)staff->size(); v++) {
 					GridVoice* voice = staff->at(v);
+					if (!voice) {
+						continue;
+					}
 					HTp token = voice->getToken();
 					if (!token) {
 						return false;
@@ -11311,6 +11320,17 @@ GridMeasure* GridSlice::getMeasure(void) {
 
 //////////////////////////////
 //
+// GridSlice::setMeasure --
+//
+
+void GridSlice::setMeasure(GridMeasure* measure) {
+	m_measure = measure;
+}
+
+
+
+//////////////////////////////
+//
 // operator<< -- print token content of a slice
 //
 
@@ -11470,6 +11490,7 @@ GridVoice* GridStaff::setTokenLayer(int layerindex, HTp token, HumNum duration) 
 	if (layerindex < 0) {
 		cerr << "Error: layer index is " << layerindex
 		     << " for " << token << endl;
+		delete token;
 		return NULL;
 	}
 	if (layerindex > (int)this->size()-1) {
@@ -11532,7 +11553,7 @@ void GridStaff::setNullTokenLayer(int layerindex, SliceType type,
 				// replace it.
 				return;
 			} else {
-				cerr << "GRID STAFF: " << this << endl;
+				// cerr << "GRID STAFF: " << this << endl;
 				cerr << "Warning, replacing existing token: "
 				     << this->at(layerindex)->getToken()
 				     << " with a null token around time "
@@ -11643,16 +11664,16 @@ ostream& operator<<(ostream& output, GridStaff* staff) {
 	}
 	for (int t=0; t<(int)staff->size(); t++) {
 		GridVoice* gt = staff->at(t);
-		cout << "(v" << t << ":)";
+		output << "(v" << t << ":)";
 		if (gt == NULL) {
-			cout << "{gt:n}";
+			output << "{gt:n}";
 			continue;
 		} else {
 			HTp token = gt->getToken();
 			if (token == NULL) {
-				cout << "{n}";
+				output << "{n}";
 			} else {
-				cout << " \"" << *token << "\" ";
+				output << " \"" << *token << "\" ";
 			}
 		}
 	}
@@ -12380,8 +12401,13 @@ int HumGrid::getStaffCount(int partindex) {
 		return 0;
 	}
 
+	auto* slice = this->at(0)->back();
+	if ((partindex < 0) || (partindex >= (int)slice->size())) {
+		return 0;
+	}
+
 	// return (int)this->at(0)->front()->at(partindex)->size();
-	return (int)this->at(0)->back()->at(partindex)->size();
+	return (int)slice->at(partindex)->size();
 }
 
 
@@ -13563,7 +13589,14 @@ void HumGrid::addMeasureLines(void) {
 
 				// insert the minimum number of barlines based on the
 				// voices in the current and next measure.
-				vcount = (int)endslice->at(p)->at(s)->size();
+				// Check bounds before accessing endslice - it may have fewer
+				// parts/staves than firstspined if adjacent measures differ
+				if (endslice && p < (int)endslice->size() &&
+				    s < (int)endslice->at(p)->size()) {
+					vcount = (int)endslice->at(p)->at(s)->size();
+				} else {
+					vcount = 1;  // Default to 1 voice if endslice doesn't have this part/staff
+				}
 				if (firstspined) {
 					nextvcount = (int)firstspined->at(p)->at(s)->size();
 				} else {
@@ -14373,8 +14406,9 @@ void HumGrid::addInvisibleRest(vector<vector<GridSlice*>>& nextevent,
 	}
 	HumNum difference = endtime - starttime;
 	HumNum gap = difference - duration;
-	if (gap == 0) {
-		// nothing to do
+	if (gap <= 0) {
+		// Gap is zero or negative (overlapping content from backup).
+		// Nothing to fill or invalid state - skip adding invisible rest.
 		nextevent.at(p).at(s) = starting;
 		return;
 	}
@@ -14703,7 +14737,14 @@ void HumGrid::insertExclusiveInterpretationLine(HumdrumFile& outfile, const stri
 		line->appendToken(token);
 	}
 
-	GridSlice& slice = *this->at(0)->front();
+	// Use the first spined slice (data slice) rather than the last slice (barline)
+	// to ensure consistent part/staff structure with the actual data.
+	// The barline slice may have a different structure based on the next measure.
+	GridSlice* sliceptr = this->at(0)->getFirstSpinedSlice();
+	if (!sliceptr) {
+		sliceptr = this->at(0)->back();
+	}
+	GridSlice& slice = *sliceptr;
 	int p; // part index
 	int s; // staff index
 	for (p=(int)slice.size()-1; p>=0; p--) {
@@ -14783,7 +14824,11 @@ void HumGrid::insertPartNames(HumdrumFile& outfile) {
 	}
 
 	string text;
-	GridSlice& slice = *this->at(0)->front();
+	GridSlice* sliceptr = this->at(0)->getFirstSpinedSlice();
+	if (!sliceptr) {
+		sliceptr = this->at(0)->back();
+	}
+	GridSlice& slice = *sliceptr;
 	int p; // part index
 	int s; // staff index
 	for (p=(int)slice.size()-1; p>=0; p--) {
@@ -14832,7 +14877,11 @@ void HumGrid::insertPartIndications(HumdrumFile& outfile) {
 	}
 
 	string text;
-	GridSlice& slice = *this->at(0)->front();
+	GridSlice* sliceptr = this->at(0)->getFirstSpinedSlice();
+	if (!sliceptr) {
+		sliceptr = this->at(0)->back();
+	}
+	GridSlice& slice = *sliceptr;
 	int p; // part index
 	int s; // staff index
 	for (p=(int)slice.size()-1; p>=0; p--) {
@@ -14975,7 +15024,11 @@ void HumGrid::insertStaffIndications(HumdrumFile& outfile) {
 	}
 
 	string text;
-	GridSlice& slice = *this->at(0)->front();
+	GridSlice* sliceptr = this->at(0)->getFirstSpinedSlice();
+	if (!sliceptr) {
+		sliceptr = this->at(0)->back();
+	}
+	GridSlice& slice = *sliceptr;
 	int p; // part index
 	int s; // staff index
 
@@ -15082,7 +15135,11 @@ void HumGrid::insertDataTerminationLine(HumdrumFile& outfile) {
 		line->appendToken(token);
 	}
 
-	GridSlice& slice = *this->at(0)->back();
+	GridSlice* sliceptr = this->at(0)->getFirstSpinedSlice();
+	if (!sliceptr) {
+		sliceptr = this->at(0)->back();
+	}
+	GridSlice& slice = *sliceptr;
 	int p; // part index
 	int s; // staff index
 	for (p=(int)slice.size()-1; p>=0; p--) {
@@ -15148,15 +15205,16 @@ void HumGrid::insertSideTerminals(HLp line, int part, int staff) {
 //
 
 void HumGrid::transferNonDataSlices(GridMeasure* output, GridMeasure* input) {
-	for (auto it = input->begin(); it != input->end(); it++) {
+	auto it = input->begin();
+	while (it != input->end()) {
 		GridSlice* slice = *it;
 		if (slice->isDataSlice()) {
+			++it;
 			continue;
 		}
 		output->push_front(slice);
-		auto it2 = it;
-		it--;
-		input->erase(it2);
+		slice->setMeasure(output);  // Update the slice's measure pointer
+		it = input->erase(it);
 	}
 }
 
@@ -15180,9 +15238,7 @@ void HumGrid::removeSibeliusIncipit(void) {
 
 	this->erase(this->begin());
 	if (this->size() > 0) {
-		// [20171012] remove this for now since it is crashing
-		// emscripten version of code.
-		// transferNonDataSlices(this->at(0), measure);
+		transferNonDataSlices(this->at(0), measure);
 	}
 	delete measure;
 	measure = NULL;
@@ -15271,6 +15327,9 @@ string HumGrid::extractMelody(GridMeasure* measure) {
 				GridStaff* staff = part->at(s);
 				for (int v=0; v<(int)staff->size(); v++) {
 					GridVoice* voice = staff->at(v);
+					if (!voice) {
+						continue;
+					}
 					HTp token = voice->getToken();
 					if (!token) {
 						continue;
@@ -15415,6 +15474,9 @@ void HumGrid::cleanTempos(GridSlice* slice) {
 			GridStaff* gs = gp->at(staff);
 			for (int voice=0; voice<(int)gs->size(); voice++) {
 				GridVoice* gv = gs->at(voice);
+				if (!gv) {
+					continue;
+				}
 				token = gv->getToken();
 				if (token) {
 					break;
@@ -15439,6 +15501,9 @@ void HumGrid::cleanTempos(GridSlice* slice) {
 			GridStaff* gs = gp->at(staff);
 			for (int voice=0; voice<(int)gs->size(); voice++) {
 				GridVoice* gv = gs->at(voice);
+				if (!gv) {
+					continue;
+				}
 				if (gv->getToken()) {
 					continue;
 				}
@@ -15491,16 +15556,20 @@ void HumGrid::deleteMeasure(int index) {
 void HumGrid::expandLocalCommentLayers(void) {
 	GridSlice *dataslice = NULL;
 	GridSlice *localslice = NULL;
+	int datasliceIndex = -1;
 	for (int i=(int)m_allslices.size() - 1; i>=0; i--) {
 		if (m_allslices[i]->isDataSlice()) {
 			dataslice = m_allslices[i];
+			datasliceIndex = i;
 		} else if (m_allslices[i]->isMeasureSlice()) {
 			dataslice = m_allslices[i];
+			datasliceIndex = i;
 		}
 		// Other slice types should be considered as well,
 		// but definitely not manipulator slices:
 		if (m_allslices[i]->isManipulatorSlice()) {
 			dataslice = m_allslices[i];
+			datasliceIndex = i;
 		}
 
 		if (!m_allslices[i]->isLocalLayoutSlice()) {
@@ -15510,7 +15579,38 @@ void HumGrid::expandLocalCommentLayers(void) {
 		if (!dataslice) {
 			continue;
 		}
-		matchLayers(localslice, dataslice);
+
+		// Don't expand the layout if there is a spined slice between
+		// it and the dataslice that has fewer voices.  This prevents
+		// incorrect expansion when removeSibeliusIncipit() transfers
+		// layout slices from a removed invisible pickup measure into
+		// a following measure that has a different voice count.
+		bool canExpand = true;
+		for (int j = i + 1; j < datasliceIndex; j++) {
+			if (!m_allslices[j]->hasSpines()) {
+				continue;
+			}
+			for (int p = 0; p < (int)m_allslices[j]->size() && p < (int)dataslice->size(); p++) {
+				GridPart* jpart = m_allslices[j]->at(p);
+				GridPart* dpart = dataslice->at(p);
+				for (int s = 0; s < (int)jpart->size() && s < (int)dpart->size(); s++) {
+					if ((int)jpart->at(s)->size() < (int)dpart->at(s)->size()) {
+						canExpand = false;
+						break;
+					}
+				}
+				if (!canExpand) {
+					break;
+				}
+			}
+			if (!canExpand) {
+				break;
+			}
+		}
+
+		if (canExpand) {
+			matchLayers(localslice, dataslice);
+		}
 	}
 }
 
@@ -22682,6 +22782,8 @@ HumdrumFileBase& HumdrumFileBase::operator=(HumdrumFileBase& infile) {
 	if (this == &infile) {
 		return *this;
 	}
+
+	clear();
 
 	m_filename = infile.m_filename;
 	m_segmentlevel = infile.m_segmentlevel;
@@ -49686,7 +49788,7 @@ int MxmlEvent::getSequenceNumber(void) const {
 //
 
 int MxmlEvent::getVoiceNumber(void) const {
-	if (m_voice) {
+	if (m_voice > 0) {
 		return m_voice;
 	} else {
 		return 1;
@@ -52742,7 +52844,7 @@ string MxmlPart::cleanSpaces(const string& input) {
 			output += input[i];
 		}
 	}
-	if (isspace(output.back())) {
+	if (!output.empty() && isspace(output.back())) {
 		output.resize(output.size() - 1);
 	}
 
@@ -60319,9 +60421,9 @@ void Tool_autocadence::addMatchToScore(HumdrumFile& infile, int matchIndex) {
 	int pindex = coord.at(1);
 	int nindex = coord.at(2);
 	auto& info = m_sequences.at(vindex).at(pindex).at(nindex);
-	// get<0> is the sequence string.
-	HTp startL = get<1>(info);  // starting token of cadence formula, lower voice
-	HTp startU = get<2>(info);  // starting token of cadence formula, upper voice
+	// std::get<0> is the sequence string.
+	HTp startL = std::get<1>(info);  // starting token of cadence formula, lower voice
+	HTp startU = std::get<2>(info);  // starting token of cadence formula, upper voice
 
 	if (startL == NULL) {
 		cerr << "WARNING: startL is NULL" << endl;
@@ -60333,7 +60435,7 @@ void Tool_autocadence::addMatchToScore(HumdrumFile& infile, int matchIndex) {
 	}
 
 	int lindex = startL->getLineIndex();
-	vector<int>& dindexes = get<3>(info);
+	vector<int>& dindexes = std::get<3>(info);
 	if (dindexes.empty()) {
 		cerr << "WARNING: dindexes is empty" << endl;
 		return;
@@ -60548,7 +60650,7 @@ bool Tool_autocadence::getCadenceEndSliceNotes(HTp& endL, HTp& endU, int count,
 			lineIndex++;
 			continue;
 		}
-		string& interval = get<0>(m_intervals.at(lineIndex).at(vindex).at(pindex));
+		string& interval = std::get<0>(m_intervals.at(lineIndex).at(vindex).at(pindex));
 		if (!interval.empty()) {
 			counter++;
 			if (counter == count) {
@@ -60649,7 +60751,7 @@ void Tool_autocadence::printMatchCount(void) {
 	int subcount = 0;
 	for (int i=0; i<(int)m_matches.size(); i++) {
 		auto& info = m_sequences.at(m_matches[i][0]).at(m_matches[i][1]).at(m_matches[i][2]);
-		vector<int>& matches = get<3>(info);
+		vector<int>& matches = std::get<3>(info);
 		subcount += (int)matches.size() - 1;
 	}
 
@@ -60684,10 +60786,10 @@ void Tool_autocadence::searchIntervalSequences(void) {
 	for (int i=0; i<(int)m_sequences.size(); i++) {
 		for (int j=0; j<(int)m_sequences[i].size(); j++) {
 			for (int k=0; k<(int)m_sequences[i][j].size(); k++) {
-				string& feature = get<0>(m_sequences.at(i).at(j).at(k));
+				string& feature = std::get<0>(m_sequences.at(i).at(j).at(k));
 				for (int m=0; m<(int)m_definitions.size(); m++) {
 					if (hre.search(feature, m_definitions.at(m).m_regex)) {
-						vector<int>& matches = get<3>(m_sequences.at(i).at(j).at(k));
+						vector<int>& matches = std::get<3>(m_sequences.at(i).at(j).at(k));
 						// cerr << "FOUND MATCH: " << m << endl;
 						matches.push_back(m);
 						m_matches.emplace_back(vector<int>{i, j, k});
@@ -60715,7 +60817,7 @@ void Tool_autocadence::prepareDefinitionList(set<int>& list) {
 		int& pindex = m_matches.at(i).at(1);
 		int& nindex = m_matches.at(i).at(2);
 		auto& info  = m_sequences.at(vindex).at(pindex).at(nindex);
-		vector<int>& matches = get<3>(info);
+		vector<int>& matches = std::get<3>(info);
 		for (int m=0; m<(int)matches.size(); m++) {
 			int dindex = matches.at(m);
 			list.insert(dindex);
@@ -60755,7 +60857,7 @@ void Tool_autocadence::printSequenceMatches(void) {
 		int& pindex = m_matches.at(i).at(1);
 		int& nindex = m_matches.at(i).at(2);
 		auto& info = m_sequences.at(vindex).at(pindex).at(nindex);
-		vector<int>& matches = get<3>(info);
+		vector<int>& matches = std::get<3>(info);
 		if (matches.empty()) {
 			continue;
 		}
@@ -60781,7 +60883,7 @@ void Tool_autocadence::printSequenceMatches(void) {
 		}
 
 		m_humdrum_text << "\t";
-		string& sequence = get<0>(info);
+		string& sequence = std::get<0>(info);
 		m_humdrum_text << sequence << endl;
 	}
 }
@@ -60797,8 +60899,8 @@ void Tool_autocadence::printSequenceMatches2(void) {
 			}
 			m_humdrum_text << "# Matches for voices " << (i+1) << " TO " << (i+1+j+1) << endl;
 			for (int k=0; k<(int)m_sequences.at(i).at(j).size(); k++) {
-				string& sequence = get<0>(m_sequences.at(i).at(j).at(k));
-				vector<int>& matches = get<3>(m_sequences.at(i).at(j).at(k));
+				string& sequence = std::get<0>(m_sequences.at(i).at(j).at(k));
+				vector<int>& matches = std::get<3>(m_sequences.at(i).at(j).at(k));
 				if (matches.empty()) {
 					continue;
 				}
@@ -60847,7 +60949,7 @@ void Tool_autocadence::printSequenceInfo(void) {
 			m_humdrum_text << endl;
 			m_humdrum_text << "# Sequences for voices " << (i+1) << " TO " << (i+1+j+1) << endl;
 			for (int k=0; k<(int)m_sequences[i][j].size(); k++) {
-				string& sequence = get<0>(m_sequences[i][j][k]);
+				string& sequence = std::get<0>(m_sequences[i][j][k]);
 				m_humdrum_text << sequence << endl;
 			}
 		}
@@ -60917,12 +61019,12 @@ void Tool_autocadence::prepareSinglePairSequences(HumdrumFile& infile, int vinde
 		if (!infile[i].isData()) {
 			continue;
 		}
-		string interval = get<0>(m_intervals.at(i).at(vindex).at(pindex));
+		string interval = std::get<0>(m_intervals.at(i).at(vindex).at(pindex));
 		if (interval.empty()) {
 			continue;
 		}
-		HTp lower = get<1>(m_intervals.at(i).at(vindex).at(pindex));
-		HTp upper = get<2>(m_intervals.at(i).at(vindex).at(pindex));
+		HTp lower = std::get<1>(m_intervals.at(i).at(vindex).at(pindex));
+		HTp upper = std::get<2>(m_intervals.at(i).at(vindex).at(pindex));
 		string sequence = generateSequenceString(infile, i, vindex, pindex);
 // cerr << "ADDING SEQUENCE: " << sequence << endl;
 		m_sequences.at(vindex).at(pindex).emplace_back(sequence, lower, upper, vector<int>{});
@@ -60950,7 +61052,7 @@ void Tool_autocadence::prepareSinglePairSequences(HumdrumFile& infile, int vinde
 string Tool_autocadence::generateSequenceString(HumdrumFile& infile, int lindex, int vindex, int pindex) {
 	vector<string> pieces;
 	for (int i=lindex; i<infile.getLineCount(); i++) {
-		string interval = get<0>(m_intervals.at(i).at(vindex).at(pindex));
+		string interval = std::get<0>(m_intervals.at(i).at(vindex).at(pindex));
 		if (interval.empty()) {
 			continue;
 		}
@@ -61156,7 +61258,7 @@ void Tool_autocadence::printIntervalDataLine(HumdrumFile& infile, int index, int
 			int vindex = m_trackToVoiceIndex.at(track);
 			int tcount = kcount - vindex - 1;
 			for (int j=0; j<tcount; j++) {
-				string value = get<0>(m_intervals.at(index).at(vindex).at(j));
+				string value = std::get<0>(m_intervals.at(index).at(vindex).at(j));
 				if (value == "") {
 					value = ".";
 				}
@@ -61220,7 +61322,7 @@ void Tool_autocadence::printIntervalDataLineScore(HumdrumFile& infile,
 			int vindex = m_trackToVoiceIndex.at(track);
 			int tcount = kcount - vindex - 1;
 			for (int j=0; j<tcount; j++) {
-				string value = get<0>(m_intervals.at(index).at(vindex).at(j));
+				string value = std::get<0>(m_intervals.at(index).at(vindex).at(j));
 				if (value == "") {
 					value = ".";
 				}
@@ -61520,8 +61622,8 @@ void Tool_autocadence::prepareIntervalInfo(HumdrumFile& infile) {
 			int pcount = vcount - j - 1;
 			m_intervals[i][j].resize(pcount);
 			for (int k=0; k<pcount; k++) {
-				get<1>(m_intervals[i][j][k]) = NULL;
-				get<2>(m_intervals[i][j][k]) = NULL;
+				std::get<1>(m_intervals[i][j][k]) = NULL;
+				std::get<2>(m_intervals[i][j][k]) = NULL;
 			}
 		}
 	}
@@ -114101,11 +114203,13 @@ void Tool_musicxml2hum::insertPartNames(HumGrid& outdata, vector<MxmlPart>& part
 	if (hasabbr) {
 		for (int i=0; i<(int)partdata.size(); i++) {
 			string partabbr = partdata[i].getPartAbbr();
+			maxstaff = outdata.getStaffCount(i);
 			if (partabbr.empty()) {
+				// Add null token to ensure staff structure is correct
+				gm->addLabelAbbrToken("*", 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 				continue;
 			}
 			string abbr = "*I'" + partabbr;
-			maxstaff = outdata.getStaffCount(i);
 			gm->addLabelAbbrToken(abbr, 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 		}
 	}
@@ -114113,23 +114217,28 @@ void Tool_musicxml2hum::insertPartNames(HumGrid& outdata, vector<MxmlPart>& part
 	if (hasname) {
 		for (int i=0; i<(int)partdata.size(); i++) {
 			string partname = partdata[i].getPartName();
+			maxstaff = outdata.getStaffCount(i);
 			if (partname.empty()) {
+				// Add null token to ensure staff structure is correct
+				gm->addLabelToken("*", 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 				continue;
 			}
 			if (partname.find("MusicXML") != string::npos) {
-				// ignore Finale dummy part names
+				// ignore Finale dummy part names, but add null token
+				gm->addLabelToken("*", 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 				continue;
 			}
 			if (partname.find("Part_") != string::npos) {
-				// ignore SharpEye dummy part names
+				// ignore SharpEye dummy part names, but add null token
+				gm->addLabelToken("*", 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 				continue;
 			}
 			if (partname.find("Unnamed") != string::npos) {
-				// ignore Sibelius dummy part names
+				// ignore Sibelius dummy part names, but add null token
+				gm->addLabelToken("*", 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 				continue;
 			}
 			string name = "*I\"" + partname;
-			maxstaff = outdata.getStaffCount(i);
 			gm->addLabelToken(name, 0, i, maxstaff-1, 0, (int)partdata.size(), maxstaff);
 		}
 	}
@@ -114965,11 +115074,7 @@ void Tool_musicxml2hum::addEvent(GridSlice* slice, GridMeasure* outdata, MxmlEve
 	}
 
 	if (m_current_brackets[partindex].size() > 0) {
-		for (int i=0; i<(int)m_current_brackets[partindex].size(); i++) {
-			event->setBracket(m_current_brackets[partindex].at(i));
-		}
 		m_current_brackets[partindex].clear();
-		addBrackets(slice, outdata, event, nowtime, partindex);
 	}
 
 	if (m_current_text.size() > 0) {
@@ -115298,43 +115403,6 @@ void Tool_musicxml2hum::addText(GridSlice* slice, GridMeasure* measure, int part
 		// null local comment
 		output = text;
 		specialQ = true;
-	} else if (text == "*") {
-		// null interpretation
-		output = text;
-		specialQ = true;
-		interpQ = true;
-	} else if ((text.size() > 1) && (text[0] == '*') && (text[1] != '*')) {
-		// regular tandem interpretation, but disallow manipulators:
-		if (text == "*^") {
-			specialQ = false;
-		} else if (text == "*+") {
-			specialQ = false;
-		} else if (text == "*-") {
-			specialQ = false;
-		} else if (text == "*v") {
-			specialQ = false;
-		} else {
-			specialQ = true;
-			interpQ = true;
-			output = text;
-		}
-	} else if ((text.size() > 2) && (text[0] == '*') && (text[1] == '*')) {
-		hre.replaceDestructive(text, "*", "^\\*+");
-		output = text;
-		specialQ = true;
-		afterQ = true;
-		interpQ = true;
-		if (force == false) {
-			// store text for later processing after the next note in the data.
-			string index;
-			index += to_string(partindex);
-			index += ' ';
-			index += to_string(staffindex);
-			index += ' ';
-			index += to_string(voiceindex);
-			m_post_note_text[index].push_back(node);
-			return;
-		}
 	} else if ((text.size() > 1) && (text[0] == '!') && (text[1] != '!')) {
 		// embedding a local comment
 		output = text;
@@ -116959,6 +117027,9 @@ void Tool_musicxml2hum::processPrintElement(GridMeasure* outdata, xml_node eleme
 	}
 
 	if (!(isPageBreak || isSystemBreak)) {
+		return;
+	}
+	if (outdata->empty()) {
 		return;
 	}
 	GridSlice* gs = outdata->back();
@@ -129191,7 +129262,16 @@ void Tool_ruthfix::insertCrossBarTies(HumdrumFile& infile, int strand) {
 			barstart = true;
 		} else if (s->isNote()) {
 			if (lastnote && barstart && (s->find("yy") != string::npos)) {
-				createTiedNote(lastnote, s);
+				// Do not add ties if either note already has tie markers,
+				// which can happen when MusicXML explicitly encodes ties
+				// across page breaks with print-object="no".
+				bool leftHasTie  = (lastnote->find('[') != string::npos) ||
+				                   (lastnote->find('_') != string::npos);
+				bool rightHasTie = (s->find(']') != string::npos) ||
+				                   (s->find('_') != string::npos);
+				if (!leftHasTie && !rightHasTie) {
+					createTiedNote(lastnote, s);
+				}
 			}
 			barstart = false;
 			lastnote = s;
@@ -142156,6 +142236,9 @@ bool Tool_trillspell::analyzeOrnamentAccidentals(HumdrumFile& infile) {
 	vector<int> rtracks(infile.getMaxTrack()+1, -1);
 	for (i=0; i<(int)ktracks.size(); i++) {
 		track = ktracks[i]->getTrack();
+		if (track < 0 || track >= (int)rtracks.size()) {
+			continue;
+		}
 		rtracks[track] = i;
 	}
 	int kcount = (int)ktracks.size();
@@ -142198,6 +142281,9 @@ bool Tool_trillspell::analyzeOrnamentAccidentals(HumdrumFile& infile) {
 				if (infile[i].token(j)->compare(0, 3, "*k[") == 0) {
 					track = infile[i].token(j)->getTrack();
 					kindex = rtracks[track];
+					if (kindex < 0) {
+						continue;
+					}
 					fillKeySignature(keysigs[kindex], *infile[i].token(j));
 					// resetting key states of current measure.  What to do if this
 					// key signature is in the middle of a measure?
@@ -142215,6 +142301,9 @@ bool Tool_trillspell::analyzeOrnamentAccidentals(HumdrumFile& infile) {
 				}
 				track = infile[i].token(j)->getTrack();
 				kindex = rtracks[track];
+				if (kindex < 0) {
+					continue;
+				}
 				// reset the accidental states in dstates to match keysigs.
 				resetDiatonicStatesWithKeySignature(dstates[kindex],
 						keysigs[kindex]);
@@ -142242,6 +142331,9 @@ bool Tool_trillspell::analyzeOrnamentAccidentals(HumdrumFile& infile) {
 
 			HumRegex hre;
 			int rindex = rtracks[track];
+			if (rindex < 0) {
+				continue;  // Skip tokens from tracks not in the kern spine list
+			}
 			for (k=0; k<subcount; k++) {
 				string subtok = token->getSubtoken(k);
 				int b40 = Convert::kernToBase40(subtok);
