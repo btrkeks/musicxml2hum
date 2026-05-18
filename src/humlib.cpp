@@ -116641,9 +116641,7 @@ int Tool_musicxml2hum::addLyrics(GridStaff* staff, MxmlEvent* event) {
 				// escape text which would otherwise be reinterpreated
 				// as Humdrum syntax.
 				if (!text.empty()) {
-					if (text[0] == '!') {
-						text.insert(0, 1, '\\');
-					} else if (text[0] == '*') {
+					if ((text[0] == '!') || (text[0] == '=') || (text[0] == '*')) {
 						text.insert(0, 1, '\\');
 					}
 				}
