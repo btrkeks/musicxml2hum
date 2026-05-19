@@ -3,6 +3,10 @@ obj
 *.zip
 external
 tests
+!tests/
+tests/*
+!tests/hidden_extra_voice_rest_spine.xml
+!tests/run_tests.sh
 bin
 .DS_Store
 /build/

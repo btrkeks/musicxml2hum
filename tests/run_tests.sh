@@ -42,6 +42,23 @@ else
     ((FAILED++))
 fi
 
+echo "Checking regression: hidden extra voice rest spine"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/hidden_extra_voice_rest_spine.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -E 'Expected [0-9]+ fields|spine [0-9]+ is not terminated' "$tmperr" >/dev/null &&
+   grep -F '*^' "$tmpout" >/dev/null &&
+   grep -F '*v' "$tmpout" >/dev/null; then
+    echo "PASS: hidden_extra_voice_rest_spine"
+    ((PASSED++))
+else
+    echo "FAIL: hidden_extra_voice_rest_spine"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "----------------------------------------"
 echo "Results: $PASSED passed, $FAILED failed"
 

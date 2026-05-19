@@ -13546,7 +13546,7 @@ void HumGrid::addMeasureLines(void) {
 	GridStaff* staff;
 	GridVoice* gv;
 	string token;
-	int staffcount, partcount, vcount, nextvcount, lcount;
+	int staffcount, partcount, vcount, lcount;
 	GridMeasure* measure = NULL;
 	GridMeasure* nextmeasure = NULL;
 
@@ -13571,42 +13571,35 @@ void HumGrid::addMeasureLines(void) {
 		if (measure->getDuration() == 0) {
 			continue;
 		}
-		mslice = new GridSlice(measure, timestamp, SliceType::Measures);
 		// what to do when endslice is NULL?
 		endslice = measure->getLastSpinedSlice(); // this has to come before next line
+		mslice = new GridSlice(measure, timestamp, SliceType::Measures);
 		measure->push_back(mslice); // this has to come after the previous line
-		partcount = (int)firstspined->size();
+		partcount = endslice ? (int)endslice->size() : (int)firstspined->size();
 		mslice->resize(partcount);
 
 		for (int p=0; p<partcount; p++) {
 			part = new GridPart();
 			mslice->at(p) = part;
-			staffcount = (int)firstspined->at(p)->size();
+			if (endslice && p < (int)endslice->size()) {
+				staffcount = (int)endslice->at(p)->size();
+			} else if (firstspined && p < (int)firstspined->size()) {
+				staffcount = (int)firstspined->at(p)->size();
+			} else {
+				staffcount = 1;
+			}
 			mslice->at(p)->resize(staffcount);
 			for (int s=0; s<(int)staffcount; s++) {
 				staff = new GridStaff;
 				mslice->at(p)->at(s) = staff;
 
-				// insert the minimum number of barlines based on the
-				// voices in the current and next measure.
-				// Check bounds before accessing endslice - it may have fewer
-				// parts/staves than firstspined if adjacent measures differ
 				if (endslice && p < (int)endslice->size() &&
 				    s < (int)endslice->at(p)->size()) {
 					vcount = (int)endslice->at(p)->at(s)->size();
 				} else {
 					vcount = 1;  // Default to 1 voice if endslice doesn't have this part/staff
 				}
-				if (firstspined) {
-					nextvcount = (int)firstspined->at(p)->at(s)->size();
-				} else {
-					// perhaps an empty measure?  This will cause problems.
-					nextvcount = 0;
-				}
 				lcount = vcount;
-				if (lcount > nextvcount) {
-					lcount = nextvcount;
-				}
 				if (lcount == 0) {
 					lcount = 1;
 				}
@@ -115607,7 +115600,47 @@ void Tool_musicxml2hum::addTempo(GridSlice* slice, GridMeasure* measure, int par
 			mmtok += mmvalue;
 		}
 		HumNum timestamp = slice->getTimestamp();
-		measure->addTempoToken(mmtok, timestamp, partindex, staff, voice, m_maxstaff);
+		GridSlice* temposlice = NULL;
+		for (auto it = measure->begin(); it != measure->end(); it++) {
+			if (((*it)->getTimestamp() == timestamp) && (*it)->isTempoSlice()) {
+				temposlice = *it;
+				break;
+			}
+			if (*it == slice) {
+				break;
+			}
+		}
+		if (temposlice == NULL) {
+			temposlice = new GridSlice(measure, timestamp, SliceType::Tempos);
+			temposlice->initializeBySlice(slice);
+			bool inserted = false;
+			for (auto it = measure->begin(); it != measure->end(); it++) {
+				if (*it == slice) {
+					measure->insert(it, temposlice);
+					inserted = true;
+					break;
+				}
+				if ((*it)->getTimestamp() > timestamp) {
+					measure->insert(it, temposlice);
+					inserted = true;
+					break;
+				}
+			}
+			if (!inserted) {
+				measure->push_back(temposlice);
+			}
+		}
+		if (partindex < (int)temposlice->size() &&
+				staff < (int)temposlice->at(partindex)->size()) {
+			GridStaff* gs = temposlice->at(partindex)->at(staff);
+			if ((int)gs->size() <= voice) {
+				gs->resize(voice + 1);
+			}
+			if (gs->at(voice) == NULL) {
+				gs->at(voice) = new GridVoice;
+			}
+			gs->at(voice)->setToken(mmtok);
+		}
 	}
 
 	string butext = beatunit.child_value();
