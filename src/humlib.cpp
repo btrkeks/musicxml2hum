@@ -14585,6 +14585,20 @@ void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 			if (m_allslices.at(s)->isGraceSlice()) {
 				m_allslices[s]->setDuration(0);
 			} else if (m_allslices.at(s)->isDataSlice()) {
+				if ((voicei < (int)gs->size()) && (gs->at(voicei) != NULL) &&
+						(gs->at(voicei)->getToken() != NULL) &&
+						((string)*gs->at(voicei)->getToken() != ".")) {
+					HumNum elapsed = currts - m_allslices.at(slicei)->getTimestamp();
+					if (elapsed > 0) {
+						string text = (string)*token;
+						string recip = Convert::durationToRecip(elapsed);
+						HumRegex hre;
+						hre.replaceDestructive(text, recip, "\\d+(?:%\\d+)?\\.*", "g");
+						token->setText(text);
+						gv->setDuration(elapsed);
+					}
+					return;
+				}
 				gs->setNullTokenLayer(voicei, type, slicedur);
 				timeleft = timeleft - slicedur;
 			} else if (m_allslices.at(s)->isInvalidSlice()) {
