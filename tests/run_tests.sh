@@ -59,6 +59,23 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: dangling X after transposition"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/dangling_x_after_transposition.xml" >"$tmpout" 2>"$tmperr" &&
+   grep -F '4enX' "$tmpout" >/dev/null &&
+   grep -F '4g-X' "$tmpout" >/dev/null &&
+   ! grep -F '4eX' "$tmpout" >/dev/null; then
+    echo "PASS: dangling_x_after_transposition"
+    ((PASSED++))
+else
+    echo "FAIL: dangling_x_after_transposition"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: ZZZ hidden measure rest collision"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"

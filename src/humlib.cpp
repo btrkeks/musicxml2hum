@@ -140927,7 +140927,14 @@ cerr << "\tNEWPITCH " << pitch << endl;
 	string output;
 	if (hre.search(input, "([A-Ga-g#n-]+)")) {
 		string oldpitch = hre.getMatch(1);
-		output = hre.replaceCopy(input, newpitch, oldpitch);
+		string replacement = newpitch;
+		bool oldHasAccidental = oldpitch.find_first_of("#n-") != string::npos;
+		bool newHasAccidental = newpitch.find_first_of("#n-") != string::npos;
+		if (oldHasAccidental && !newHasAccidental &&
+				input.find(oldpitch + "X") != string::npos) {
+			replacement += "n";
+		}
+		output = hre.replaceCopy(input, replacement, oldpitch);
 	}
 	m_humdrum_text << output;
 }

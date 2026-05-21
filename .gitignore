@@ -5,6 +5,7 @@ external
 tests
 !tests/
 tests/*
+!tests/dangling_x_after_transposition.xml
 !tests/hidden_extra_voice_rest_spine.xml
 !tests/run_tests.sh
 !tests/zzz_hidden_measure_rest_collision.xml
