@@ -50092,6 +50092,24 @@ bool MxmlEvent::parseEvent(xml_node el, xml_node nextel, HumNum starttime) {
 			// So this case might need to be addressed at a later stage when
 			// the score is assembled, such as when adding null tokens, and a
 			// null spot is located in the score.
+			if (tempvoice < 0) {
+				xml_node nel = el.next_sibling();
+				if (nodeType(pel, "note") && nodeType(nel, "note")) {
+					xml_node pvoice = pel.child("voice");
+					xml_node nvoice = nel.child("voice");
+					int pvoicenum = pvoice ? atoi(pvoice.child_value()) : -1;
+					int nvoicenum = nvoice ? atoi(nvoice.child_value()) : -1;
+					xml_node pstaff = pel.child("staff");
+					xml_node nstaff = nel.child("staff");
+					int pstaffnum = pstaff ? atoi(pstaff.child_value()) : 1;
+					int nstaffnum = nstaff ? atoi(nstaff.child_value()) : 1;
+					if ((pvoicenum > 0) && (pvoicenum == nvoicenum)
+							&& (pstaffnum == nstaffnum)) {
+						tempvoice = pvoicenum;
+						tempstaff = pstaffnum;
+					}
+				}
+			}
 		}
 	}
 

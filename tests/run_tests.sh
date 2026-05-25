@@ -59,6 +59,22 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: secondary voice forward gap"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/forward_gap_secondary_voice.xml" >"$tmpout" 2>"$tmperr" &&
+   grep -F '8ryy' "$tmpout" >/dev/null &&
+   ! grep -F 'Inconsistent rhythm analysis' "$tmperr" >/dev/null; then
+    echo "PASS: forward_gap_secondary_voice"
+    ((PASSED++))
+else
+    echo "FAIL: forward_gap_secondary_voice"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: dangling X after transposition"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"
