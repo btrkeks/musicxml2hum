@@ -14278,8 +14278,7 @@ void HumGrid::checkForNullDataHoles(void) {
 							}
 						}
 						string recip = Convert::durationToRecip(duration);
-						// ggg @ marker is added to keep track of them for more debugging.
-						recip += "ryy@";
+						recip += "ryy";
 						staff.at(v)->setToken(recip);
 						continue;
 					}

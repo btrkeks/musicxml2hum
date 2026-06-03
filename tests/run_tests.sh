@@ -97,6 +97,7 @@ tmpout="$(mktemp)"
 tmperr="$(mktemp)"
 if "$BINARY" "$TESTDIR/zzz_hidden_measure_rest_collision.xml" >"$tmpout" 2>"$tmperr" &&
    ! grep -F '.ZZZ' "$tmpout" >/dev/null &&
+   ! grep -F 'ryy@' "$tmpout" >/dev/null &&
    ! grep -F 'Warning, replacing existing token' "$tmperr" >/dev/null &&
    grep -F '2.ryy' "$tmpout" >/dev/null &&
    grep -F '4r' "$tmpout" >/dev/null; then
