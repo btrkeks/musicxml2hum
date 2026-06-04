@@ -13895,22 +13895,34 @@ string HumGrid::getBarStyle(GridMeasure* measure) {
 // HumGrid::addLastMeasure --
 //
 
-void HumGrid::addLastMeasure(void) {
-   // add the last measure, which will be only one voice
-	// for each part/staff.
-	GridSlice* model = this->back()->back();
-	if (model == NULL) {
-		return;
+static HumNum getFinalBarlineTimestamp(GridMeasure* measure, GridSlice* fallback) {
+	if (measure != NULL) {
+		HumNum duration = measure->getDuration();
+		if (duration > 0) {
+			return measure->getTimestamp() + duration;
+		}
 	}
+	if (fallback != NULL) {
+		return fallback->getTimestamp();
+	}
+	return 0;
+}
 
-	// probably not the correct timestamp, but probably not important
-	// to get correct:
-	HumNum timestamp = model->getTimestamp();
 
+void HumGrid::addLastMeasure(void) {
+	// Add the last measure at the end of the final measure, with one voice
+	// for each part/staff.  This allows manipulatorCheck() to close any
+	// active split spines before the final barline.
 	if (this->empty()) {
 		return;
 	}
 	GridMeasure* measure = this->back();
+	GridSlice* model = measure->getLastSpinedSlice();
+	if (model == NULL) {
+		return;
+	}
+
+	HumNum timestamp = getFinalBarlineTimestamp(measure, model);
 
 	string barstyle = getBarStyle(measure);
 

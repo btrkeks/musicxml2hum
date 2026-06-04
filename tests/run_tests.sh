@@ -59,6 +59,24 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: final measure split voice merge"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/final_measure_split_voice_merge.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -E 'Expected [0-9]+ fields|spine [0-9]+ is not terminated' "$tmperr" >/dev/null &&
+   grep -F $'*\t*v\t*v\t*' "$tmpout" >/dev/null &&
+   grep -F $'==\t==\t==' "$tmpout" >/dev/null &&
+   grep -F $'*-\t*-\t*-' "$tmpout" >/dev/null; then
+    echo "PASS: final_measure_split_voice_merge"
+    ((PASSED++))
+else
+    echo "FAIL: final_measure_split_voice_merge"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: secondary voice forward gap"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"
