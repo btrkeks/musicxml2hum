@@ -14478,6 +14478,14 @@ void HumGrid::adjustClefChanges(void) {
 // HumGrid::extendDurationToken --
 //
 
+static string replaceKernTokenDuration(const string& token, HumNum duration) {
+	string output = token;
+	string recip = Convert::durationToRecip(duration);
+	HumRegex hre;
+	hre.replaceDestructive(output, recip, "\\d+(?:%\\d+)?\\.*", "g");
+	return output;
+}
+
 void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 		int voicei) {
 	if ((slicei < 0) || (slicei >= ((int)m_allslices.size()) - 1)) {
@@ -14512,6 +14520,7 @@ void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 	HumNum nextts   = m_allslices.at(slicei+1)->getTimestamp();
 	HumNum slicedur = nextts - currts;
 	HumNum timeleft = tokendur - slicedur;
+	int startvcount = (int)m_allslices.at(slicei)->at(parti)->at(staffi)->size();
 
 	if (tokendur == 0) {
 		// Do not try to extend tokens with zero duration
@@ -14584,15 +14593,35 @@ void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 			if (m_allslices.at(s)->isGraceSlice()) {
 				m_allslices[s]->setDuration(0);
 			} else if (m_allslices.at(s)->isDataSlice()) {
+				bool targetNull = true;
+				if ((voicei < (int)gs->size()) && (gs->at(voicei) != NULL) &&
+						(gs->at(voicei)->getToken() != NULL) &&
+						((string)*gs->at(voicei)->getToken() != ".")) {
+					targetNull = false;
+				}
+				if (Convert::isKernRest((string)*token) &&
+						((int)gs->size() > startvcount) &&
+						targetNull) {
+					HumNum elapsed = currts - m_allslices.at(slicei)->getTimestamp();
+					if ((elapsed > 0) && (timeleft > 0)) {
+						// A new layer starts inside this rest, so split the rest at the layer entry.
+						string original = (string)*token;
+						token->setText(replaceKernTokenDuration(original, elapsed));
+						gv->setDuration(elapsed);
+						HTp continuation = new HumdrumToken(replaceKernTokenDuration(original, timeleft));
+						GridVoice* newvoice = gs->setTokenLayer(voicei, continuation, timeleft);
+						if (newvoice) {
+							newvoice->setDuration(timeleft);
+						}
+						return;
+					}
+				}
 				if ((voicei < (int)gs->size()) && (gs->at(voicei) != NULL) &&
 						(gs->at(voicei)->getToken() != NULL) &&
 						((string)*gs->at(voicei)->getToken() != ".")) {
 					HumNum elapsed = currts - m_allslices.at(slicei)->getTimestamp();
 					if (elapsed > 0) {
-						string text = (string)*token;
-						string recip = Convert::durationToRecip(elapsed);
-						HumRegex hre;
-						hre.replaceDestructive(text, recip, "\\d+(?:%\\d+)?\\.*", "g");
+						string text = replaceKernTokenDuration((string)*token, elapsed);
 						token->setText(text);
 						gv->setDuration(elapsed);
 					}

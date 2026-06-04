@@ -75,6 +75,22 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: late voice entry during rest"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/late_voice_entry_during_rest.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -F 'Inconsistent rhythm analysis' "$tmperr" >/dev/null &&
+   grep -F $'4r\t4G#\t8ee' "$tmpout" >/dev/null; then
+    echo "PASS: late_voice_entry_during_rest"
+    ((PASSED++))
+else
+    echo "FAIL: late_voice_entry_during_rest"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: dangling X after transposition"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"
