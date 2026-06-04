@@ -50345,6 +50345,73 @@ bool MxmlEvent::parseEvent(xpath_node el, HumNum starttime) {
 }
 
 
+static bool getNoteVoiceStaff(xml_node note, int& voice, int& staff) {
+	if (!MxmlEvent::nodeType(note, "note")) {
+		return false;
+	}
+	xml_node vchild = note.child("voice");
+	if (!vchild) {
+		return false;
+	}
+	voice = atoi(vchild.child_value());
+	if (voice <= 0) {
+		return false;
+	}
+	xml_node schild = note.child("staff");
+	staff = schild ? atoi(schild.child_value()) : 1;
+	return staff > 0;
+}
+
+
+static bool noteIsChordMember(xml_node note) {
+	return MxmlEvent::nodeType(note, "note") && note.child("chord");
+}
+
+
+static bool hasFollowingNoteBeforeCursorBoundary(xml_node node) {
+	for (xml_node current = node.next_sibling(); current; current = current.next_sibling()) {
+		if (MxmlEvent::nodeType(current, "backup") ||
+				MxmlEvent::nodeType(current, "forward") ||
+				MxmlEvent::nodeType(current, "barline")) {
+			return false;
+		}
+		if (MxmlEvent::nodeType(current, "note")) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+static void inferForwardVoiceStaff(xml_node forward, int& voice, int& staff) {
+	if (voice >= 0) {
+		return;
+	}
+
+	xml_node previous = forward.previous_sibling();
+	xml_node next = forward.next_sibling();
+	int previousVoice = -1;
+	int previousStaff = -1;
+	int nextVoice = -1;
+	int nextStaff = -1;
+
+	if (getNoteVoiceStaff(previous, previousVoice, previousStaff) &&
+			getNoteVoiceStaff(next, nextVoice, nextStaff) &&
+			(previousVoice == nextVoice) && (previousStaff == nextStaff)) {
+		voice = previousVoice;
+		staff = previousStaff;
+		return;
+	}
+
+	if (!noteIsChordMember(previous) &&
+			getNoteVoiceStaff(previous, previousVoice, previousStaff) &&
+			!hasFollowingNoteBeforeCursorBoundary(forward)) {
+		voice = previousVoice;
+		staff = previousStaff;
+	}
+}
+
+
 bool MxmlEvent::parseEvent(xml_node el, xml_node nextel, HumNum starttime) {
 	m_node = el;
 
@@ -50443,24 +50510,7 @@ bool MxmlEvent::parseEvent(xml_node el, xml_node nextel, HumNum starttime) {
 			// So this case might need to be addressed at a later stage when
 			// the score is assembled, such as when adding null tokens, and a
 			// null spot is located in the score.
-			if (tempvoice < 0) {
-				xml_node nel = el.next_sibling();
-				if (nodeType(pel, "note") && nodeType(nel, "note")) {
-					xml_node pvoice = pel.child("voice");
-					xml_node nvoice = nel.child("voice");
-					int pvoicenum = pvoice ? atoi(pvoice.child_value()) : -1;
-					int nvoicenum = nvoice ? atoi(nvoice.child_value()) : -1;
-					xml_node pstaff = pel.child("staff");
-					xml_node nstaff = nel.child("staff");
-					int pstaffnum = pstaff ? atoi(pstaff.child_value()) : 1;
-					int nstaffnum = nstaff ? atoi(nstaff.child_value()) : 1;
-					if ((pvoicenum > 0) && (pvoicenum == nvoicenum)
-							&& (pstaffnum == nstaffnum)) {
-						tempvoice = pvoicenum;
-						tempstaff = pstaffnum;
-					}
-				}
-			}
+			inferForwardVoiceStaff(el, tempvoice, tempstaff);
 		}
 	}
 

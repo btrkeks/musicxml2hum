@@ -93,6 +93,24 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: terminal forward secondary voice"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/terminal_forward_secondary_voice.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -E 'Negative duration|Inconsistent rhythm analysis' "$tmperr" >/dev/null &&
+   grep -F $'4..C#\t8CC#' "$tmpout" >/dev/null &&
+   grep -F $'.\t4.ryy' "$tmpout" >/dev/null &&
+   grep -F $'*v\t*v' "$tmpout" >/dev/null; then
+    echo "PASS: terminal_forward_secondary_voice"
+    ((PASSED++))
+else
+    echo "FAIL: terminal_forward_secondary_voice"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: late voice entry during rest"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"
