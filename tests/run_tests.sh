@@ -108,6 +108,23 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: late voice reentry during tied note"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/late_voice_reentry_during_tied_note.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -E 'Negative duration|Inconsistent rhythm analysis|Cannot deal with this slice addition case' "$tmperr" >/dev/null &&
+   grep -F '[4.e-' "$tmpout" >/dev/null &&
+   grep -F '4.e-]' "$tmpout" >/dev/null; then
+    echo "PASS: late_voice_reentry_during_tied_note"
+    ((PASSED++))
+else
+    echo "FAIL: late_voice_reentry_during_tied_note"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: rounded tuplet compensating forward"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"

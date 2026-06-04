@@ -13337,6 +13337,129 @@ bool HumGrid::manipulatorCheck(void) {
 }
 
 
+static bool gridVoiceIsActiveAt(GridVoice* voice, HumNum starttime,
+		HumNum checktime) {
+	if (voice == NULL) {
+		return false;
+	}
+	HTp token = voice->getToken();
+	if (token == NULL) {
+		return false;
+	}
+	if (token->isNull()) {
+		return false;
+	}
+	HumNum duration = voice->getDuration();
+	if (duration <= 0) {
+		return false;
+	}
+	return starttime + duration > checktime;
+}
+
+
+static GridVoice* getGridVoiceFromSlice(GridSlice* slice, int parti, int staffi,
+		int voicei) {
+	if (slice == NULL) {
+		return NULL;
+	}
+	if (parti >= (int)slice->size()) {
+		return NULL;
+	}
+	GridPart* part = slice->at(parti);
+	if (part == NULL) {
+		return NULL;
+	}
+	if (staffi >= (int)part->size()) {
+		return NULL;
+	}
+	GridStaff* staff = part->at(staffi);
+	if (staff == NULL) {
+		return NULL;
+	}
+	if (voicei >= (int)staff->size()) {
+		return NULL;
+	}
+	return staff->at(voicei);
+}
+
+
+static bool gridVoiceHasActiveDurationAt(GridSlice* startslice, int parti,
+		int staffi, int voicei, HumNum checktime) {
+	if (startslice == NULL) {
+		return false;
+	}
+	GridMeasure* measure = startslice->getMeasure();
+	if (measure == NULL) {
+		return false;
+	}
+
+	GridVoice* activevoice = NULL;
+	HumNum activestart = 0;
+	for (auto it = measure->begin(); it != measure->end(); it++) {
+		GridSlice* slice = *it;
+		if ((slice != NULL) && slice->hasSpines()) {
+			GridVoice* voice = getGridVoiceFromSlice(slice, parti, staffi, voicei);
+			if ((voice != NULL) && (voice->getToken() != NULL) &&
+					!voice->getToken()->isNull() && (voice->getDuration() > 0)) {
+				activevoice = voice;
+				activestart = slice->getTimestamp();
+			}
+		}
+		if (slice == startslice) {
+			break;
+		}
+	}
+	return gridVoiceIsActiveAt(activevoice, activestart, checktime);
+}
+
+
+static void preserveStaffVoiceCount(GridSlice* slice, int parti, int staffi,
+		int voicecount) {
+	if (slice == NULL) {
+		return;
+	}
+	if (parti >= (int)slice->size()) {
+		return;
+	}
+	if (staffi >= (int)slice->at(parti)->size()) {
+		return;
+	}
+	GridStaff* staff = slice->at(parti)->at(staffi);
+	if (staff == NULL) {
+		return;
+	}
+	HumNum duration = slice->isDataSlice() ? slice->getDuration() : 0;
+	for (int v=(int)staff->size(); v<voicecount; v++) {
+		staff->setNullTokenLayer(v, slice->getType(), duration);
+	}
+}
+
+
+static bool preventPrematureStaffMerge(GridSlice* ice1, GridSlice* ice2,
+		int parti, int staffi, int v1count, int v2count) {
+	if ((ice1 == NULL) || (ice2 == NULL)) {
+		return false;
+	}
+	if (v1count <= v2count) {
+		return false;
+	}
+	GridStaff* staff = ice1->at(parti)->at(staffi);
+	if (staff == NULL) {
+		return false;
+	}
+	int shrink = v1count - v2count + 1;
+	int notshrink = v1count - shrink;
+	HumNum mergetime = ice2->getTimestamp();
+	for (int v=notshrink; v<v1count; v++) {
+		if (gridVoiceHasActiveDurationAt(ice1, parti, staffi, v, mergetime)) {
+			preserveStaffVoiceCount(ice2, parti, staffi, v1count);
+			return true;
+		}
+	}
+	return false;
+}
+
+
 //
 // HumGrid::manipulatorCheck -- Look for differences in voice/layer count
 //   for each part/staff pairing between adjacent lines.  If they do not match,
@@ -13395,6 +13518,12 @@ GridSlice* HumGrid::manipulatorCheck(GridSlice* ice1, GridSlice* ice2) {
 			v2count = (int)ice2->at(p)->at(s)->size();
 			if (v2count < 1) {
 				v2count = 1;
+			}
+			if (preventPrematureStaffMerge(ice1, ice2, p, s, v1count, v2count)) {
+				v2count = (int)ice2->at(p)->at(s)->size();
+				if (v2count < 1) {
+					v2count = 1;
+				}
 			}
 			if (v1count == v2count) {
 				continue;

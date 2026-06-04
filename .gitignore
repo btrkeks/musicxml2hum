@@ -9,6 +9,7 @@ tests/*
 !tests/forward_gap_secondary_voice.xml
 !tests/hidden_extra_voice_rest_spine.xml
 !tests/late_voice_entry_during_rest.xml
+!tests/late_voice_reentry_during_tied_note.xml
 !tests/note_split_at_layer_entry.xml
 !tests/rounded_tuplet_compensating_forward.xml
 !tests/run_tests.sh
