@@ -14486,6 +14486,78 @@ static string replaceKernTokenDuration(const string& token, HumNum duration) {
 	return output;
 }
 
+static bool gridVoiceHasNonNullToken(GridStaff* staff, int voicei) {
+	if (staff == NULL) {
+		return false;
+	}
+	if (voicei < 0) {
+		return false;
+	}
+	if (voicei >= (int)staff->size()) {
+		return false;
+	}
+	GridVoice* voice = staff->at(voicei);
+	if (voice == NULL) {
+		return false;
+	}
+	HTp token = voice->getToken();
+	if (token == NULL) {
+		return false;
+	}
+	return (string)*token != ".";
+}
+
+static bool gridVoiceSlotIsEmptyOrNull(GridStaff* staff, int voicei) {
+	return !gridVoiceHasNonNullToken(staff, voicei);
+}
+
+static void shortenGridVoiceDuration(GridVoice* voice, HTp token,
+		HumNum duration) {
+	if ((voice == NULL) || (token == NULL)) {
+		return;
+	}
+	token->setText(replaceKernTokenDuration((string)*token, duration));
+	voice->setDuration(duration);
+}
+
+static GridStaff* ensureGridStaff(GridSlice* slice, int parti, int staffi) {
+	if (staffi == (int)slice->at(parti)->size()) {
+		cerr << "WARNING: staff index " << staffi
+		     << " is probably incorrect: increasing staff count for part to "
+		     << staffi + 1 << endl;
+		slice->at(parti)->resize(slice->at(parti)->size() + 1);
+		slice->at(parti)->at(staffi) = new GridStaff();
+	}
+	GridStaff* staff = slice->at(parti)->at(staffi);
+	if (staff == NULL) {
+		cerr << "Strange error6 in extendDurationToken()" << endl;
+		return NULL;
+	}
+	return staff;
+}
+
+static bool splitRestAtLayerEntry(GridVoice* sourcevoice, HTp sourcetoken,
+		GridStaff* targetstaff, int voicei, HumNum elapsed, HumNum timeleft) {
+	if ((sourcevoice == NULL) || (sourcetoken == NULL) || (targetstaff == NULL)) {
+		return false;
+	}
+	if ((elapsed <= 0) || (timeleft <= 0)) {
+		return false;
+	}
+
+	// A new layer starts inside this rest, so split the rest at the layer entry.
+	string original = (string)*sourcetoken;
+	sourcetoken->setText(replaceKernTokenDuration(original, elapsed));
+	sourcevoice->setDuration(elapsed);
+
+	HTp continuation = new HumdrumToken(replaceKernTokenDuration(original, timeleft));
+	GridVoice* newvoice = targetstaff->setTokenLayer(voicei, continuation, timeleft);
+	if (newvoice) {
+		newvoice->setDuration(timeleft);
+	}
+	return true;
+}
+
 void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 		int voicei) {
 	if ((slicei < 0) || (slicei >= ((int)m_allslices.size()) - 1)) {
@@ -14553,8 +14625,6 @@ void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 			return;
 		}
 
-		SliceType type;
-		GridStaff* gs;
 		int s = slicei+1;
 
 		while ((s < (int)m_allslices.size()) && (timeleft > 0)) {
@@ -14577,53 +14647,27 @@ void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 				nextts = currts + m_allslices.at(s)->getDuration();
 			}
 			slicedur = nextts - currts;
-			type = m_allslices[s]->getType();
-
-			if (staffi == (int)m_allslices.at(s)->at(parti)->size()) {
-					cerr << "WARNING: staff index " << staffi << " is probably incorrect: increasing staff count for part to " << staffi + 1 << endl;
-					m_allslices.at(s)->at(parti)->resize(m_allslices.at(s)->at(parti)->size() + 1);
-					m_allslices.at(s)->at(parti)->at(staffi) = new GridStaff();
-			}
-			gs = m_allslices.at(s)->at(parti)->at(staffi);
+			SliceType type = m_allslices[s]->getType();
+			GridStaff* gs = ensureGridStaff(m_allslices.at(s), parti, staffi);
 			if (gs == NULL) {
-				cerr << "Strange error6 in extendDurationToken()" << endl;
 				return;
 			}
 
 			if (m_allslices.at(s)->isGraceSlice()) {
 				m_allslices[s]->setDuration(0);
 			} else if (m_allslices.at(s)->isDataSlice()) {
-				bool targetNull = true;
-				if ((voicei < (int)gs->size()) && (gs->at(voicei) != NULL) &&
-						(gs->at(voicei)->getToken() != NULL) &&
-						((string)*gs->at(voicei)->getToken() != ".")) {
-					targetNull = false;
-				}
 				if (Convert::isKernRest((string)*token) &&
 						((int)gs->size() > startvcount) &&
-						targetNull) {
+						gridVoiceSlotIsEmptyOrNull(gs, voicei)) {
 					HumNum elapsed = currts - m_allslices.at(slicei)->getTimestamp();
-					if ((elapsed > 0) && (timeleft > 0)) {
-						// A new layer starts inside this rest, so split the rest at the layer entry.
-						string original = (string)*token;
-						token->setText(replaceKernTokenDuration(original, elapsed));
-						gv->setDuration(elapsed);
-						HTp continuation = new HumdrumToken(replaceKernTokenDuration(original, timeleft));
-						GridVoice* newvoice = gs->setTokenLayer(voicei, continuation, timeleft);
-						if (newvoice) {
-							newvoice->setDuration(timeleft);
-						}
+					if (splitRestAtLayerEntry(gv, token, gs, voicei, elapsed, timeleft)) {
 						return;
 					}
 				}
-				if ((voicei < (int)gs->size()) && (gs->at(voicei) != NULL) &&
-						(gs->at(voicei)->getToken() != NULL) &&
-						((string)*gs->at(voicei)->getToken() != ".")) {
+				if (gridVoiceHasNonNullToken(gs, voicei)) {
 					HumNum elapsed = currts - m_allslices.at(slicei)->getTimestamp();
 					if (elapsed > 0) {
-						string text = replaceKernTokenDuration((string)*token, elapsed);
-						token->setText(text);
-						gv->setDuration(elapsed);
+						shortenGridVoiceDuration(gv, token, elapsed);
 					}
 					return;
 				}
