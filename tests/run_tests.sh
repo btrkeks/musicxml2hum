@@ -91,6 +91,40 @@ else
 fi
 rm -f "$tmpout" "$tmperr"
 
+echo "Checking regression: note split at layer entry"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/note_split_at_layer_entry.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -E 'Negative duration|Inconsistent rhythm analysis|Cannot deal with this slice addition case' "$tmperr" >/dev/null &&
+   grep -F '[4b' "$tmpout" >/dev/null &&
+   grep -F $'4b]\t4cc' "$tmpout" >/dev/null; then
+    echo "PASS: note_split_at_layer_entry"
+    ((PASSED++))
+else
+    echo "FAIL: note_split_at_layer_entry"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
+echo "Checking regression: rounded tuplet compensating forward"
+tmpout="$(mktemp)"
+tmperr="$(mktemp)"
+if "$BINARY" "$TESTDIR/rounded_tuplet_compensating_forward.xml" >"$tmpout" 2>"$tmperr" &&
+   ! grep -E 'Negative duration|Inconsistent rhythm analysis|Cannot deal with this slice addition case' "$tmperr" >/dev/null &&
+   ! grep -F 'ryy' "$tmpout" >/dev/null &&
+   grep -F '14cL' "$tmpout" >/dev/null; then
+    echo "PASS: rounded_tuplet_compensating_forward"
+    ((PASSED++))
+else
+    echo "FAIL: rounded_tuplet_compensating_forward"
+    cat "$tmperr"
+    cat "$tmpout"
+    ((FAILED++))
+fi
+rm -f "$tmpout" "$tmperr"
+
 echo "Checking regression: dangling X after transposition"
 tmpout="$(mktemp)"
 tmperr="$(mktemp)"

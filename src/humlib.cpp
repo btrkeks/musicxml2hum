@@ -14520,6 +14520,56 @@ static void shortenGridVoiceDuration(GridVoice* voice, HTp token,
 	voice->setDuration(duration);
 }
 
+static string addKernTieMarkerToNotes(const string& token, const string& marker,
+		bool prefix) {
+	vector<string> pieces;
+	HumRegex hre;
+	hre.split(pieces, token, " ");
+	if (pieces.empty()) {
+		pieces.push_back(token);
+	}
+
+	string output;
+	for (int i=0; i<(int)pieces.size(); i++) {
+		if (i > 0) {
+			output += " ";
+		}
+		string piece = pieces[i];
+		if (!Convert::isKernNote(piece)) {
+			output += piece;
+			continue;
+		}
+		if (piece.find("[") != string::npos || piece.find("_") != string::npos ||
+				piece.find("]") != string::npos) {
+			output += piece;
+			continue;
+		}
+		if (prefix) {
+			output += marker + piece;
+		} else {
+			output += piece + marker;
+		}
+	}
+
+	return output;
+}
+
+static string prepareSplitTokenStart(const string& token, HumNum duration) {
+	string output = replaceKernTokenDuration(token, duration);
+	if (Convert::isKernNote(output)) {
+		output = addKernTieMarkerToNotes(output, "[", true);
+	}
+	return output;
+}
+
+static string prepareSplitTokenContinuation(const string& token, HumNum duration) {
+	string output = replaceKernTokenDuration(token, duration);
+	if (Convert::isKernNote(output)) {
+		output = addKernTieMarkerToNotes(output, "]", false);
+	}
+	return output;
+}
+
 static GridStaff* ensureGridStaff(GridSlice* slice, int parti, int staffi) {
 	if (staffi == (int)slice->at(parti)->size()) {
 		cerr << "WARNING: staff index " << staffi
@@ -14536,7 +14586,7 @@ static GridStaff* ensureGridStaff(GridSlice* slice, int parti, int staffi) {
 	return staff;
 }
 
-static bool splitRestAtLayerEntry(GridVoice* sourcevoice, HTp sourcetoken,
+static bool splitKernTokenAtLayerEntry(GridVoice* sourcevoice, HTp sourcetoken,
 		GridStaff* targetstaff, int voicei, HumNum elapsed, HumNum timeleft) {
 	if ((sourcevoice == NULL) || (sourcetoken == NULL) || (targetstaff == NULL)) {
 		return false;
@@ -14545,12 +14595,12 @@ static bool splitRestAtLayerEntry(GridVoice* sourcevoice, HTp sourcetoken,
 		return false;
 	}
 
-	// A new layer starts inside this rest, so split the rest at the layer entry.
+	// A new layer starts inside this token, so split it at the layer entry.
 	string original = (string)*sourcetoken;
-	sourcetoken->setText(replaceKernTokenDuration(original, elapsed));
+	sourcetoken->setText(prepareSplitTokenStart(original, elapsed));
 	sourcevoice->setDuration(elapsed);
 
-	HTp continuation = new HumdrumToken(replaceKernTokenDuration(original, timeleft));
+	HTp continuation = new HumdrumToken(prepareSplitTokenContinuation(original, timeleft));
 	GridVoice* newvoice = targetstaff->setTokenLayer(voicei, continuation, timeleft);
 	if (newvoice) {
 		newvoice->setDuration(timeleft);
@@ -14656,11 +14706,12 @@ void HumGrid::extendDurationToken(int slicei, int parti, int staffi,
 			if (m_allslices.at(s)->isGraceSlice()) {
 				m_allslices[s]->setDuration(0);
 			} else if (m_allslices.at(s)->isDataSlice()) {
-				if (Convert::isKernRest((string)*token) &&
+				if ((Convert::isKernRest((string)*token) ||
+							Convert::isKernNote((string)*token)) &&
 						((int)gs->size() > startvcount) &&
 						gridVoiceSlotIsEmptyOrNull(gs, voicei)) {
 					HumNum elapsed = currts - m_allslices.at(slicei)->getTimestamp();
-					if (splitRestAtLayerEntry(gv, token, gs, voicei, elapsed, timeleft)) {
+					if (splitKernTokenAtLayerEntry(gv, token, gs, voicei, elapsed, timeleft)) {
 						return;
 					}
 				}
@@ -17577,6 +17628,57 @@ HumNum::HumNum(const HumNum& rat) {
 }
 
 
+static long long humNumAbsLongLong(long long value) {
+	return value < 0 ? -value : value;
+}
+
+
+static long long humNumGcdLongLong(long long a, long long b) {
+	a = humNumAbsLongLong(a);
+	b = humNumAbsLongLong(b);
+	while (b) {
+		long long c = a;
+		a = b;
+		b = c % b;
+	}
+	return a;
+}
+
+
+static HumNum makeHumNum(long long numerator, long long denominator) {
+	if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
+	}
+	if (denominator == 0) {
+		if ((numerator > std::numeric_limits<int>::max()) ||
+				(numerator < std::numeric_limits<int>::min())) {
+			cerr << "Error: HumNum value out of integer range: "
+				  << numerator << "/" << denominator << endl;
+			return HumNum(0, 0);
+		}
+		return HumNum((int)numerator, 0);
+	}
+	if (numerator == 0) {
+		return HumNum(0, 1);
+	}
+	long long gcd = humNumGcdLongLong(numerator, denominator);
+	if (gcd > 1) {
+		numerator /= gcd;
+		denominator /= gcd;
+	}
+	if ((numerator > std::numeric_limits<int>::max()) ||
+			(numerator < std::numeric_limits<int>::min()) ||
+			(denominator > std::numeric_limits<int>::max()) ||
+			(denominator < std::numeric_limits<int>::min())) {
+		cerr << "Error: HumNum value out of integer range: "
+			  << numerator << "/" << denominator << endl;
+		return HumNum(0, 0);
+	}
+	return HumNum((int)numerator, (int)denominator);
+}
+
+
 
 //////////////////////////////
 //
@@ -17952,20 +18054,22 @@ bool HumNum::isPowerOfTwo(void) const {
 //
 
 HumNum HumNum::operator+(const HumNum& value) const {
-	int a1  = getNumerator();
-	int b1  = getDenominator();
-	int a2  = value.getNumerator();
-	int b2  = value.getDenominator();
-	int ao = a1*b2 + a2 * b1;
-	int bo = b1*b2;
-	HumNum output(ao, bo);
-	return output;
+	long long a1 = getNumerator();
+	long long b1 = getDenominator();
+	long long a2 = value.getNumerator();
+	long long b2 = value.getDenominator();
+	long long gcd = humNumGcdLongLong(b1, b2);
+	if (gcd == 0) {
+		return makeHumNum(a1 * b2 + a2 * b1, b1 * b2);
+	}
+	long long ao = a1 * (b2 / gcd) + a2 * (b1 / gcd);
+	long long bo = (b1 / gcd) * b2;
+	return makeHumNum(ao, bo);
 }
 
 
 HumNum HumNum::operator+(int value) const {
-	HumNum output(value * bot + top, bot);
-	return output;
+	return makeHumNum((long long)value * bot + top, bot);
 }
 
 
@@ -17978,20 +18082,22 @@ HumNum HumNum::operator+(int value) const {
 //
 
 HumNum HumNum::operator-(const HumNum& value) const {
-	int a1  = getNumerator();
-	int b1  = getDenominator();
-	int a2  = value.getNumerator();
-	int b2  = value.getDenominator();
-	int ao = a1*b2 - a2*b1;
-	int bo = b1*b2;
-	HumNum output(ao, bo);
-	return output;
+	long long a1 = getNumerator();
+	long long b1 = getDenominator();
+	long long a2 = value.getNumerator();
+	long long b2 = value.getDenominator();
+	long long gcd = humNumGcdLongLong(b1, b2);
+	if (gcd == 0) {
+		return makeHumNum(a1 * b2 - a2 * b1, b1 * b2);
+	}
+	long long ao = a1 * (b2 / gcd) - a2 * (b1 / gcd);
+	long long bo = (b1 / gcd) * b2;
+	return makeHumNum(ao, bo);
 }
 
 
 HumNum HumNum::operator-(int value) const {
-	HumNum output(top - value * bot, bot);
-	return output;
+	return makeHumNum((long long)top - (long long)value * bot, bot);
 }
 
 
@@ -18003,8 +18109,7 @@ HumNum HumNum::operator-(int value) const {
 //
 
 HumNum HumNum::operator-(void) const {
-	HumNum output(-top, bot);
-	return output;
+	return makeHumNum(-(long long)top, bot);
 }
 
 
@@ -18016,20 +18121,28 @@ HumNum HumNum::operator-(void) const {
 //
 
 HumNum HumNum::operator*(const HumNum& value) const {
-	int a1  = getNumerator();
-	int b1  = getDenominator();
-	int a2  = value.getNumerator();
-	int b2  = value.getDenominator();
-	int ao = a1*a2;
-	int bo = b1*b2;
-	HumNum output(ao, bo);
-	return output;
+	long long a1 = getNumerator();
+	long long b1 = getDenominator();
+	long long a2 = value.getNumerator();
+	long long b2 = value.getDenominator();
+	long long gcd1 = humNumGcdLongLong(a1, b2);
+	long long gcd2 = humNumGcdLongLong(a2, b1);
+	if (gcd1 == 0) {
+		gcd1 = 1;
+	}
+	if (gcd2 == 0) {
+		gcd2 = 1;
+	}
+	a1 /= gcd1;
+	b2 /= gcd1;
+	a2 /= gcd2;
+	b1 /= gcd2;
+	return makeHumNum(a1 * a2, b1 * b2);
 }
 
 
 HumNum HumNum::operator*(int value) const {
-	HumNum output(top * value, bot);
-	return output;
+	return makeHumNum((long long)top * value, bot);
 }
 
 
@@ -18041,28 +18154,36 @@ HumNum HumNum::operator*(int value) const {
 //
 
 HumNum HumNum::operator/(const HumNum& value) const {
-	int a1  = getNumerator();
-	int b1  = getDenominator();
-	int a2  = value.getNumerator();
-	int b2  = value.getDenominator();
-	int ao = a1*b2;
-	int bo = b1*a2;
-	HumNum output(ao, bo);
-	return output;
+	long long a1 = getNumerator();
+	long long b1 = getDenominator();
+	long long a2 = value.getNumerator();
+	long long b2 = value.getDenominator();
+	long long gcd1 = humNumGcdLongLong(a1, a2);
+	long long gcd2 = humNumGcdLongLong(b2, b1);
+	if (gcd1 == 0) {
+		gcd1 = 1;
+	}
+	if (gcd2 == 0) {
+		gcd2 = 1;
+	}
+	a1 /= gcd1;
+	a2 /= gcd1;
+	b2 /= gcd2;
+	b1 /= gcd2;
+	return makeHumNum(a1 * b2, b1 * a2);
 }
 
 
 HumNum HumNum::operator/(int value) const {
-	int a  = getNumerator();
-	int b  = getDenominator();
+	long long a = getNumerator();
+	long long b = getDenominator();
 	if (value < 0) {
 		a = -a;
-		b *= -value;
+		b *= -(long long)value;
 	} else {
 		b *= value;
 	}
-	HumNum output(a, b);
-	return output;
+	return makeHumNum(a, b);
 }
 
 
@@ -49112,6 +49233,7 @@ MxmlEvent::~MxmlEvent() {
 
 void MxmlEvent::clear(void) {
 	m_starttime = m_duration = 0;
+	m_rawduration = 0;
 	m_modification = 1;
 	m_eventtype = mevent_unknown;
 	m_owner = NULL;
@@ -49153,6 +49275,7 @@ void MxmlEvent::makeDummyRest(MxmlMeasure* owner, HumNum starttime,
 		HumNum duration, int staffindex, int voiceindex) {
 	m_starttime = starttime;
 	m_duration = duration;
+	m_rawduration = duration;
 	m_eventtype = mevent_forward;  // not a real rest (will be invisible)
 	// m_node remains null
 	// m_links remains empty
@@ -49234,6 +49357,18 @@ HumNum MxmlEvent::getStartTime(void) const {
 
 HumNum MxmlEvent::getDuration(void) const {
 	return m_duration;
+}
+
+
+
+//////////////////////////////
+//
+// MxmlEvent::getRawDuration -- Return the duration from raw MusicXML
+//     tick values before notation-derived correction.
+//
+
+HumNum MxmlEvent::getRawDuration(void) const {
+	return m_rawduration;
 }
 
 
@@ -49476,17 +49611,20 @@ long MxmlEvent::getIntValue(const char* query) const {
 void MxmlEvent::setDurationByTicks(long value, xml_node el) {
 	long ticks = getQTicks();
 	if (ticks == 0) {
+		m_rawduration = 0;
 		setDuration(0);
 		return;
 	}
 
 	if (isGrace()) {
+		m_rawduration = 0;
 		setDuration(0);
 		return;
 	}
 
 	HumNum val = (int)value;
 	val /= (int)ticks;
+	m_rawduration = val;
 
 	HumNum modification;
 	if (el) {
@@ -51429,9 +51567,11 @@ bool MxmlMeasure::parseMeasure(xml_node mel) {
 	vector<vector<int> > staffVoiceCounts;
 	setStartTimeOfMeasure();
 
-	HumNum starttime = getStartTime();
-	HumNum st   = starttime;
-	HumNum maxst = starttime;
+	HumNum musicstart = getStartTime();
+	HumNum musiccursor = musicstart;
+	HumNum rawcursor = musicstart;
+	HumNum cursoroffset = 0;
+	HumNum maxst = musicstart;
 
 	xml_node nextel;
 	for (auto el = mel.first_child(); el; el = el.next_sibling()) {
@@ -51441,13 +51581,38 @@ bool MxmlMeasure::parseMeasure(xml_node mel) {
 		}
 		m_events.push_back(event);
 		nextel = el.next_sibling();
-		output &= event->parseEvent(el, nextel, starttime);
-		starttime += event->getDuration();
-		if (starttime > maxst) {
-			maxst = starttime;
+		output &= event->parseEvent(el, nextel, musiccursor);
+		HumNum rawduration = event->getRawDuration();
+		if (event->getType() == mevent_forward) {
+			HumNum duration;
+			if (cursoroffset >= rawduration) {
+				duration = 0;
+				cursoroffset -= rawduration;
+			} else {
+				duration = rawduration - cursoroffset;
+				cursoroffset = 0;
+			}
+			event->setDuration(duration);
+			rawcursor += rawduration;
+			musiccursor += duration;
+		} else if (event->getType() == mevent_backup) {
+			rawcursor += rawduration;
+			if (rawcursor < musicstart) {
+				rawcursor = musicstart;
+			}
+			musiccursor = rawcursor;
+			cursoroffset = 0;
+		} else {
+			rawcursor += rawduration;
+			HumNum duration = event->getDuration();
+			musiccursor += duration;
+			cursoroffset += duration - rawduration;
+		}
+		if (musiccursor > maxst) {
+			maxst = musiccursor;
 		}
 	}
-	setDuration(maxst - st);
+	setDuration(maxst - musicstart);
 
 	// Should no longer be needed:
 	// calculateDuration();

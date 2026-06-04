@@ -51,6 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <list>
 #include <locale>
 #include <map>
@@ -5181,6 +5182,7 @@ class MxmlEvent {
 		void               setModification    (HumNum value);
 		HumNum             getStartTime       (void) const;
 		HumNum             getDuration        (void) const;
+		HumNum             getRawDuration     (void) const;
 		HumNum             getModification    (void) const;
 		void               setOwner           (MxmlMeasure* measure);
 		MxmlMeasure*       getOwner           (void) const;
@@ -5261,6 +5263,7 @@ class MxmlEvent {
 	protected:
 		HumNum             m_starttime;    // start time in quarter notes of event
 		HumNum             m_duration;     // duration in quarter notes of event
+		HumNum             m_rawduration;  // duration from raw MusicXML ticks
       HumNum             m_modification; // tuplet time adjustment of note
 		measure_event_type m_eventtype;    // enumeration type of event
 		xml_node           m_node;         // pointer to event in XML structure
@@ -12268,6 +12271,4 @@ class Tool_vcross : public HumTool {
 
 
 #endif /* _HUMLIB_H_INCLUDED */
-
-
 
