@@ -1,0 +1,17 @@
+**kern	**kern	**dynam
+*part1	*part1	*part1
+*staff2	*staff1	*
+*I"Piano	*	*
+*clefF4	*clefG2	*
+*k[]	*k[]	*
+*M4/4	*M4/4	*
+=1	=1	=1
+1C	1c	.
+=	=	=
+*	*^	*
+1C	1e	1Cyy	pp
+*	*v	*v	*
+==	==	==
+*-	*-	*-
+!!!system-decoration: {(s1,s2)}
+!! NO IDENTIFICATION FOUND

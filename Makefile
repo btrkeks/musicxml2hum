@@ -12,7 +12,7 @@
 ##
 
 # targets which don't actually refer to files:
-.PHONY: all debug release clean install download update tests bindir pgo pgo-generate pgo-use
+.PHONY: all debug release clean install download update test tests update-goldens bindir pgo pgo-generate pgo-use
 
 .SUFFIXES:
 
@@ -153,8 +153,13 @@ install: release
 	sudo cp $(RELEASE_TARGET) /usr/local/bin/
 
 # Run tests with debug binary
-tests: debug
-	for i in tests/*.xml; do $(DEBUG_TARGET) $$i > tests/`basename $$i .xml`.krn; done
+test: debug
+	python3 -m pytest -q
+
+tests: test
+
+update-goldens: debug
+	python3 tests/update_goldens.py --binary $(DEBUG_TARGET)
 
 # Clean build artifacts
 clean:

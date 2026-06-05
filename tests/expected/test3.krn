@@ -1,0 +1,514 @@
+!!!COM: Manuel Ponce / Jascha Heifetz
+!!!OTL: Estrellita
+**kern	**kern	**dynam	**kern	**dynam
+*part2	*part2	*part2	*part1	*part1
+*staff3	*staff2	*	*staff1	*
+*I"Piano	*	*	*I"Flute	*
+*I'Pno.	*	*	*I'Fl.	*
+*clefF4	*clefG2	*	*clefG2	*
+*k[b-]	*k[b-]	*	*k[b-]	*
+*M4/4	*M4/4	*	*M4/4	*
+*	*MM50	*	*MM50	*
+=1	=1	=1	=1	=1
+!	!	!	!LO:TX:a:t=[quarter]=50	!
+2FF 2C	8r	mf	2r	.
+.	[4B- 4c#X 4a	>	.	.
+.	8B-] 8d 8g	.	.	.
+2FF 2C	8r	.	4r	.
+.	4G-X [4B- 4f	.	.	.
+.	.	.	(8.cL	.
+.	8Gn 8B-] 8e	.	.	.
+.	.	.	16dJk)	.
+=	=	=	=	=
+2FF 2C	8r	]	4e	.
+.	(4G#X 4d	.	.	.
+.	.	.	12fL	.
+.	.	.	(12a~	.
+.	8A) 8c	.	.	.
+.	.	.	(12cc~J)	.
+2AA 2F	8r	.	[4gg)	.
+.	[4c 4e	.	.	.
+.	.	.	8ggL]	.
+.	8c] 8d	.	8ffJ	.
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+2BB- 2F 2G	8r	.	(8.ffL	>
+.	(4c 4d-X	.	.	.
+.	.	.	16gJk)	.
+.	.	.	2g	]
+.	8B-) 8dn	.	.	.
+2GG 2F	8r	.	.	.
+.	(4B- 4d 4f	.	.	.
+.	.	.	8r	.
+.	8d) 8f 8b-	.	8dd	.
+=	=	=	=	=
+8CCL 8GG	8.dL 8.e 8.b-	.	(8.ddL	.
+8CJ	.	.	.	.
+.	16AJk 16cn 16d#X	.	16f#XJk)	.
+*^	*	*	*	*
+8.GL	8r	8.B-L 8.c 8.g	.	(8.gL	.
+.	4C	.	.	.	.
+16AJk	.	16cJk 16e-X 16f#X	.	16aJk)	.
+4.B-	.	4c 4en 4g	.	(4b-	.
+.	4C	.	.	.	.
+.	.	8r	.	8r	.
+8B-	8C	8c 8e 8g#X	.	8dd)	.
+=	=	=	=	=	=
+8r	2.FF 2.C	8r	.	8.ddL	.
+4A	.	4c 4f 4a	.	.	.
+.	.	.	.	16ee~Jk	.
+.	.	.	.	(8.ccL	.
+4A	.	4c 4f 4a	.	.	.
+.	.	.	.	16cJk)	.
+.	.	.	.	4a	.
+8A	.	8c 8f 8a	.	.	.
+*v	*v	*	*	*	*
+12CL 12A 12c	4r	.	(8.cL	.
+12CC	.	.	.	.
+12CJ 12A-X 12Bn	.	.	.	.
+.	.	.	16dJk)	.
+=	=	=	=	=
+*^	*	*	*	*
+!	!	!	!	!	!LO:DY:a
+4C 4G 4B-X	8r	2r	.	(4e	<
+.	4FF	.	.	.	.
+4C 4G 4B-X	.	.	.	12fL)	.
+.	.	.	.	12a	.
+.	8FFF	.	.	.	.
+.	.	.	.	12ccJ	.
+2AAA 2AA	2ryy	8r	.	([4aa	[
+.	.	4G [4c#X 4e-X	.	.	.
+.	.	.	.	8aaL]	.
+.	.	8G 8c#] 8en	.	8eeJ)	.
+=	=	=	=	=	=
+*v	*v	*	*	*	*
+2BBB- 2BB-	8r	.	(8.ggL	.
+.	(4G 4c#X 4g	.	.	.
+.	.	.	16ffJk)	.
+.	.	.	4g	.
+.	8F) 8d 8f	.	.	.
+2GG	8r	.	12r	.
+.	.	.	12eeL	.
+.	[4F 4cn 4e	.	.	.
+.	.	.	12ggJ	.
+.	.	.	(16ff~LL	.
+.	.	.	16ee~)	.
+.	8F] 8B- 8d	.	16ff~	.
+.	.	.	16dd~JJ	.
+=	=	=	=	=
+2C	8r	.	(8.ddL	.
+.	4F 4A 4c	.	.	.
+.	.	.	16ccJk)	.
+.	.	.	(8.ffL	.
+.	8F 8B- 8d-X	.	.	.
+.	.	.	16aJk)	.
+*	*^	*	*	*
+2CC	8dnL	4F 4Bn	.	(8aL	.
+.	8e-XJ	.	.	8b-J)	.
+*	*v	*v	*	*	*
+.	4G 4B-X 4en	.	(8dd	.
+.	.	.	16r	.
+.	.	.	16e)	.
+=	=	=	=	=
+*^	*	*	*	*
+!	!	!	!	!	!LO:DY:a
+8r	2FFF 2FF	8r	.	2f	>
+[8C [8A	.	4c 4f	.	.	.
+4C] 4A]	.	.	.	.	.
+.	.	8f 8cc	.	.	.
+*v	*v	*	*	*	*
+2r	4cc 4ff	.	4r	]
+.	4r	.	(8.cL	.
+.	.	.	16dJk)	.
+=	=	=	=	=
+8FF	4r	p	(4e	.
+4D 4F 4A	.	.	.	.
+.	8.cL	.	12fL)	.
+.	.	.	12a~	.
+8C 8D 8F 8A	.	.	.	.
+.	.	.	(12cc~J	.
+.	16dJk	.	.	.
+8AA	4e	.	([4gg)	.
+4F 4A 4d	.	.	.	.
+.	12fL	.	8ggL]	.
+.	12a	.	.	.
+8F 8A 8c	.	.	8ffJ)	.
+.	12ccJ	.	.	.
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+8BB-	[4gg	.	(8.ffL	>
+4F 4G 4d-X	.	.	.	.
+.	.	.	16gJk)	.
+.	8ggL]	.	2g	]
+8F 8G 8dn	8ffJ	.	.	.
+8GG	8.ffL	.	.	.
+4G [4B- 4g	.	.	.	.
+.	16gJk	.	.	.
+.	[4g	.	8r	.
+8F 8B-] 8e	.	.	8dd	.
+=	=	=	=	=
+8CC	4g]	.	(8.ddL	.
+4E 4B- 4d	.	.	.	.
+.	.	.	16f#XJk)	.
+.	8r	.	(8.gL	.
+8E 8B- 8c	8dd	.	.	.
+.	.	.	16aJk)	.
+*^	*	*	*	*
+8r	8AAL	(8.ddL	.	(4b-	.
+[4c	8F	.	.	.	.
+.	.	16e-XJk) 16f#X	.	.	.
+.	8B-	(8.enL 8.g	.	8r	.
+8c]	8CJ	.	.	8dd)	.
+.	.	16g#XJk)	.	.	.
+=	=	=	=	=	=
+*v	*v	*	*	*	*
+8FF	4c 4f 4a	.	8.ddL	.
+4C 4F 4A	.	.	.	.
+.	.	.	16ee~Jk	.
+.	8r	.	(8.ccL	.
+8r	8dd	.	.	.
+.	.	.	16cJk)	.
+8C	8.ddL	.	4a	.
+4A 4c 4f	.	.	.	.
+.	16eeJk	.	.	.
+.	8.ccL	.	(8.cL	.
+8G#X 8Bn 8e	.	.	.	.
+.	16cJk	.	16dJk)	.
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+8FFL 8C	4a	.	(4e	<
+8AJ 8c 8f	.	.	.	.
+4r	8.cL	.	12fL)	.
+.	.	.	12a	.
+.	.	.	12ccJ	.
+.	16dJk	.	.	.
+!	!	!LO:DY:a	!	!
+8AA 8G	4c 4e	<	([4aa	[
+4F 4c	.	.	.	.
+.	12fL	.	8aaL]	.
+.	12a	.	.	.
+8F 8c	.	.	8eeJ)	.
+.	12ccJ	.	.	.
+=	=	=	=	=
+8BBB-	4f 4cc 4ee	[	(8.ggL	.
+4B- 4d	.	.	.	.
+.	.	.	16ffJk)	.
+.	4f 4b- 4dd	.	4g	.
+8F 8B- 8d	.	.	.	.
+8AAA	8r	.	12r	.
+.	.	.	12eeL	.
+4F	4d 4f 4a	.	.	.
+.	.	.	12ggJ	.
+.	.	.	(16ff~LL	.
+.	.	.	16ee~)	.
+8B-	8d 8f 8b-	.	16ff~	.
+.	.	.	16dd~JJ	.
+=	=	=	=	=
+8C 8A	8bnL	.	(8.ddL	.
+4A 4c 4f	8ccJ	.	.	.
+.	.	.	16ccJk)	.
+.	8.ddL	.	(8.ffL	.
+8A 8c 8f#X	.	.	.	.
+.	16dJk	.	16aJk)	.
+8C 8G	8d#XL	.	(8aL	.
+4B- 4c	8eJ	.	8b-J)	.
+.	(8.eL 8.f#X	.	(8.ddL	.
+8B- 8c	.	.	.	.
+.	16eJk) 16g#X	.	16eJk)	.
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+8FF 8C	2.f 2.a	.	2f	>
+4F 4A 4d	.	.	.	.
+4F 4A 4d-X	.	.	.	.
+.	.	.	4r	]
+8F 8A 8c	.	.	.	.
+4r	4r	.	4b-	p
+=	=	=	=	=
+4CC	4r	.	(12aL	.
+.	.	.	12f#X	.
+.	.	.	12gJ)	.
+4E 4B- 4c	12eL 12b- 12cc	.	2dd	.
+.	12f 12b- 12dd	.	.	.
+.	12f#XJ 12b- 12dd#X	.	.	.
+4B- 4c 4e	2g 2b- 2ff	.	.	.
+4r	.	.	(8ccL	.
+.	.	.	8aJ)	.
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+4FF 4C	4r	.	(12gL	>
+.	.	.	12a	.
+.	.	.	12fJ)	.
+4A 4c 4f	12aL 12cc 12ff	.	2c	]
+.	12b- 12ee-X 12gg	.	.	.
+.	12dd-XJ 12ff-X 12aa-X	.	.	.
+4c 4f 4a	4cc 4ffn 4aan	.	.	.
+4r	4r	.	4b-	.
+=	=	=	=	=
+4CC	4r	.	(12a~L	.
+.	.	.	12f#X~	.
+.	.	.	12g~J)	.
+4E 4B- 4c	12gL 12b- 12ee-X	.	2b-	.
+.	12f#X 12b- 12dd	.	.	.
+.	12fnJ 12b- 12dd-X	.	.	.
+4B- 4c	2e 2b- 2cc	.	.	.
+4r	.	.	(8aL	.
+.	.	.	8gJ)	.
+=	=	=	=	=
+4FF	4r	.	(8.b-L	.
+.	.	.	16aJk)	.
+*^	*	*	*	*
+8GL	2F	[12e-XL [12f 12dd-X	.	4f	.
+.	.	12cc	.	.	.
+8AJ	.	.	.	.	.
+.	.	12e-J] 12f] 12bn	.	.	.
+*	*	*^	*	*	*
+4B-	.	4f 4b-X	8dL	.	4r	.
+.	.	.	8d-XJ	.	.	.
+[4C	4ryy	8anL	12cL	.	(8.cL	.
+.	.	.	12Bn	.	.	.
+.	.	8gnJ	.	.	.	.
+.	.	.	12B-XJ	.	.	.
+.	.	.	.	.	16dJk)	.
+=	=	=	=	=	=	=
+*v	*v	*	*	*	*	*
+*	*v	*v	*	*	*
+!	!	!	!	!LO:DY:a
+8FF 8C]	4e	.	(4e	<
+4C 4F	.	.	.	.
+.	12AL 12c	.	12fL)	.
+.	12c 12f	.	12a	.
+8C 8F	.	.	.	.
+.	12fJ 12a	.	12ccJ	.
+8AAA	[4dd-X [4ff	.	([4aa	[
+4G 4A 4c#X	.	.	.	.
+.	12dd-L] 12ff]	.	12aaL]	.
+.	12cc 12ee-X	.	12gg	.
+8G 8A 8c#	.	.	.	.
+.	12aJ 12cc#X	.	12eeJ)	.
+=	=	=	=	=
+*	*^	*	*	*
+!	!	!	!	!	!LO:DY:a
+8DD 8AA	8eenL	4a	.	(8.ggL	>
+4F 4A	8ddJ	.	.	.	.
+.	.	.	.	16ffJk)	.
+.	[4f	12dL	.	4a	.
+.	.	12c#X	.	.	.
+8F 8A	.	.	.	.	.
+.	.	12cnJ	.	.	.
+4GG 4D 4F	4f]	4B-	.	12r	]
+.	.	.	.	12eeL	.
+.	.	.	.	12ggJ	.
+*	*v	*v	*	*	*
+4r	4r	.	(16ff~LL	.
+.	.	.	16ee~)	.
+.	.	.	16ff~	.
+.	.	.	16dd~JJ	.
+=	=	=	=	=
+*^	*	*	*	*
+2A	4C	(8cL	.	(8ddL	.
+.	.	8fJ) 8a 8cc	.	8ccJ)	.
+.	4BBn	(8c#XL	.	(8.ffL	.
+.	.	8fJ) 8a 8cc#X	.	.	.
+.	.	.	.	16aJk)	.
+4BB-X 4A-X	2ryy	(8dL	.	(8aL	.
+.	.	8fJ) 8b- 8dd	.	8b-J)	.
+4AA 4G	.	(8eL	.	(8.dd-XL	.
+.	.	8aJ) 8cc#X 8ee	.	.	.
+.	.	.	.	16eJk)	.
+=	=	=	=	=	=
+*v	*v	*	*	*	*
+!	!	!	!	!LO:DY:a
+8FF 8C	8A 8c	.	2.f	p >
+4A 4c	4f 4cc 4ff	.	.	.
+4A 4c	4f 4cc 4ff	.	.	.
+8A 8c	8f 8cc 8ff	.	.	.
+4r	4r	.	4bb-	] p
+=	=	=	=	=
+2GG 2D 2F	8B- 8d	.	(12aaL	.
+.	.	.	12ff#X	.
+.	4f 4b-	.	.	.
+.	.	.	12ggJ)	.
+.	.	.	2ddd	.
+.	8f 8b-	.	.	.
+2GG 2C 2E	8B- 8c	.	.	.
+.	4e 4b-	.	.	.
+.	.	.	(8cccL	.
+.	8e 8b-	.	8aaJ)	.
+=	=	=	=	=
+*^	*^	*	*	*
+!	!	!	!	!	!	!LO:DY:a
+(4D	2FF	8d	[4A	.	(12ggL	>
+.	.	.	.	.	12aa	.
+.	.	4f 4a	.	.	.	.
+.	.	.	.	.	12ffJ)	.
+4D-X)	.	.	4A] 4d-X	.	2cc	]
+.	.	8f 8a	.	.	.	.
+*	*	*v	*v	*	*	*
+2FF 2C	2ryy	8A 8c	.	.	.
+.	.	4f 4a	.	.	.
+.	.	.	.	4bb-	.
+.	.	8f 8a	.	.	.
+=	=	=	=	=	=
+*v	*v	*	*	*	*
+2EE 2C#X	8G 8A	.	(12aaL	.
+.	.	.	12ff#X	.
+.	4c#X 4a	.	.	.
+.	.	.	12ggJ)	.
+.	.	.	2bb-	.
+.	8c# 8a	.	.	.
+2EE-X 2C#	8G 8B-	.	.	.
+.	4e-X 4g	.	.	.
+.	.	.	(8aaL	.
+.	8e- 8g	.	8ggJ)	.
+=	=	=	=	=
+4DD 4C	8G-XL 8c	.	(8.bb-L	.
+.	8dJ 8f#X	.	.	.
+.	.	.	16aaJk)	.
+4DD-X 4BBn	(8FL 8Bn	.	4ff	.
+.	8d-XJ) 8fn	.	.	.
+4GGG 4GG	8FL 8B-X	.	4r	.
+.	8d-J 8f	.	.	.
+4CC 4GG	8EL 8B-	.	(8.ccL	.
+.	8cJ 8e	.	.	.
+.	.	.	16ddJk)	.
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+8FF 8C	8r	.	(4ee	<
+4F 4B- 4d	4f 4b- 4dd	.	.	.
+.	.	.	12ffL)	.
+.	.	.	12aa~	.
+8F 8A 8c	8f 8a 8cc	.	.	.
+.	.	.	12ccc~J	.
+!	!	!	!	!LO:DY:a
+8AA	8r	.	([4ggg	[ >
+4G 4A 4c#X 4f	4g#X 4cc#X 4gg#X	.	.	.
+.	.	.	8gggL]	.
+8G 8A 8c# 8e-X	8gn 8cc# 8aa	.	8fffJ)	]]
+=	=	=	=	=
+!	!	!	!	!LO:DY:a
+8DD-X 8AA-X	8r	.	(8.fffL	>
+4A-X 4d-X 4f	4a-X 4dd-X 4gg	.	.	.
+.	.	.	16aa-XJk)	.
+.	.	.	2aa-	]
+8A- 8d- 8f	8a- 8dd- 8aa-X	.	.	.
+8BB- 8F	8r	.	.	.
+4c 4d-	4a- 4dd- 4ff	.	.	.
+.	.	.	8r	.
+8B- 8d-	8a- 8dd- 8ff	.	8fff	.
+=	=	=	=	=
+8EE-X	8r	.	(8.fffL	.
+4G 4d-X	4f 4b-	.	.	.
+.	.	.	16aanJk)	.
+.	.	.	(8.bb-L	.
+4A-X 4d-	4f 4a-X	.	.	.
+.	.	.	16cccJk)	.
+.	.	.	[4ddd-X	.
+4B- 4d-	4f 4g	.	.	.
+.	.	.	8ddd-L]	.
+8Bn 8dn	8f 8g	.	8fffJ	.
+=	=	=	=	=
+8AA-X 8E-X	8r	.	(8.fffL	.
+4B- 4c	4e-X 4g	.	.	.
+.	.	.	16gggJk)	.
+.	.	.	(8.eee-XL	.
+4A-X 4cn	4e- 4a-X	.	.	.
+.	.	.	16ee-XJk)	.
+.	.	.	4ccc	.
+4A- 4B-	8e- 8a-	.	.	.
+.	8.e-L	.	(8.ee-XL	.
+8r	.	.	.	.
+.	16fJk	.	16ddnJk)	.
+=	=	=	=	=
+!	!	!LO:DY:a	!	!LO:DY:a
+8AA-X 8E-X	4g	<	(4dd-X	<
+4B- 4c 4e-X	.	.	.	.
+.	.	.	(32qqcc/LLL	.
+.	.	.	32qqdd-/JJJ)	.
+.	12a-XL	.	12ccL	.
+.	12cc~	.	12bn	.
+8A-X 8c 8e-	.	.	.	.
+.	12ee-X~J	.	12ccJ)	.
+!	!	!LO:DY:a	!	!
+8C	([4ccc	[ >	8eee-XL	[
+4B- 4en 4f#X	.	.	(8dddnJ	.
+.	8cccL]	.	12ddd-XL)	.
+.	.	.	12ccc~	.
+8B- 8e 8g	8ggJ)	.	.	.
+.	.	.	12bb-~J	.
+=	=	=	=	=
+!	!	!LO:DY:a	!	!
+8FF 8C	(8.bb-L	] >	(12aa-XL	.
+.	.	.	12gg	.
+4F 4A-X 4c	.	.	.	.
+.	.	.	12ffJ)	.
+.	16aa-XJk)	.	.	.
+.	[(4cc	]	4a-X	.
+8E-X 8A- 8c	.	.	.	.
+*	*^	*	*	*
+4D [4A- 4c	(4cc]	2f	.	12r	.
+.	.	.	.	12eenL	.
+.	.	.	.	12ggJ	.
+8D-X 8A-] 8c-X	4bn)	.	.	(16ffLL	.
+.	.	.	.	16ee	.
+8r	.	.	.	16ff	.
+.	.	.	.	16dd-XJJ)	.
+=	=	=	=	=	=
+*^	*v	*v	*	*	*
+4An	2C	(8cL	.	(8.dd-XL	.
+.	.	8fJ) 8a 8cc	.	.	.
+.	.	.	.	16ccJk)	.
+[4B-	.	(8d-XL	.	(8.ffL	.
+.	.	8fJ) 8b- 8dd-X	.	.	.
+.	.	.	.	16aJk)	.
+2B-]	2ryy	(8dnL	.	(8aL	.
+.	.	8fJ) 8b- 8ddn	.	8b-XJ)	.
+.	.	(8eL	.	(8.ddnL	.
+.	.	8b-J) 8dd 8ee	.	.	.
+.	.	.	.	16eJk)	.
+=	=	=	=	=	=
+*v	*v	*	*	*	*
+!	!	!	!	!LO:DY:a
+8DDL 8AA	8FL 8A 8d	.	2f	>
+8F 8A 8d	8f 8a 8dd 8ff	.	.	.
+8F 8A 8d-X	8f 8a 8dd-X 8ff	.	.	.
+8FJ 8A-X 8c	8fJ 8a-X 8cc 8ff	.	.	.
+4GG: 4D: 4F: 4Bn:	4f 4g 4bn 4ff	.	12r	]
+.	.	.	12eL	.
+.	.	.	12gJ	.
+.	.	.	32qqf/LLL	.
+.	.	.	32qqg/JJJ	.
+4r	4r	.	(16fLL	.
+.	.	.	16e	.
+.	.	.	16f	.
+.	.	.	16dJJ)	.
+=	=	=	=	=
+*	*MM45	*	*MM45	*
+!	!	!	!LO:TX:a:t=[quarter]=45	!
+4C 4A	(8cL	.	(8dL	.
+.	8fJ) 8a 8cc	.	8cJ)	.
+4BBn 4A	(8dL	.	8.fL	.
+.	8fJ) 8a 8dd	.	.	.
+.	.	.	16aJk	.
+4BB-X 4E-X 4G 4d-X	(8fL	.	8aL	.
+.	8b-J) 8dd-X 8ff	.	8b-J	.
+*	*MM40	*	*MM40	*
+!	!	!	!LO:TX:a:t=[quarter]=40	!
+4C 4B- 4dn	(8aL	.	8.ddL	.
+.	8ccJ) 8ee 8aa	.	.	.
+.	.	.	16e;Jk	.
+*clefG2	*	*	*	*
+=	=	=	=	=
+*^	*^	*	*	*
+!	!	!	!	!	!	!LO:DY:a
+8r	1F 1c	8r	1F 1A 1c	.	2.f	p >
+8e-X:L 8f: 8a-X:	.	8bn:L 8ff: 8gg#X: 8bbn:	.	.	.	.
+8e-: 8f: 8an:	.	8dd: 8ff: 8aa: 8ddd:	.	.	.	.
+8c#X:J 8g: 8bn:	.	8ff:J 8aa: 8ccc#X: 8fff:	.	.	.	.
+4cn: 4f: 4a: 4ccn:	.	4aa: 4cccn: 4fff: 4aaa:	.	.	.	.
+4r	.	4r	.	.	4r	]]
+*v	*v	*	*	*	*	*
+*	*v	*v	*	*	*
+==	==	==	==	==
+*-	*-	*-	*-	*-
+!!!system-decoration: s1{(s2,s3)}
+!!!COM: Heifetz, Manuel Ponce / Jascha

@@ -1,0 +1,15 @@
+**kern	**dynam	**kern	**dynam
+*part2	*part2	*part1	*part1
+*staff2	*	*staff1	*
+*I"Guitar	*	*I"Piano	*
+*clefTAB5	*	*clefG2	*
+*k[]	*	*k[]	*
+*M4/4	*	*M4/4	*
+=1	=1	=1	=1
+1r	.	1c	mp
+=	=	=	=
+1E	f	1d	.
+=	=	=	=
+*-	*-	*-	*-
+!!!system-decoration: s1,s2
+!! NO IDENTIFICATION FOUND

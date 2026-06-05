@@ -1,0 +1,26 @@
+**kern	**kern
+*part1	*part1
+*staff2	*staff1
+*I"Piano	*
+*clefF4	*clefG2
+*k[]	*k[]
+*M6/4	*M6/4
+=1	=1
+4r	8r
+.	8c
+4r	8d
+.	8e
+4r	8f
+.	8g
+2r	8a
+.	8b
+.	8cc
+.	8dd
+*^	*
+4r	4G#	8ee
+.	.	8ff
+*v	*v	*
+=	=
+*-	*-
+!!!system-decoration: {(s1,s2)}
+!! NO IDENTIFICATION FOUND
