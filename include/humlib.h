@@ -4729,6 +4729,12 @@ class GridSide {
 		void  detachDynamics    (void);
 		HTp   getDynamics       (void);
 
+		int   getFingeringCount (void);
+		void  setFingering      (HTp token);
+		void  setFingering      (const std::string& token);
+		void  detachFingering   (void);
+		HTp   getFingering      (void);
+
 		int   getFiguredBassCount (void);
 		void  setFiguredBass      (HTp token);
 		void  setFiguredBass      (const std::string& token);
@@ -4739,6 +4745,7 @@ class GridSide {
 		HumdrumToken* m_xmlid        = NULL;
 		std::vector<HumdrumToken*> m_verses;
 		HumdrumToken* m_dynamics     = NULL;
+		HumdrumToken* m_fingering    = NULL;
 		HumdrumToken* m_figured_bass = NULL;
 		HumdrumToken* m_harmony      = NULL;
 };
@@ -4942,7 +4949,8 @@ class GridSlice : public std::vector<GridPart*> {
 
 		void transferSides        (HumdrumLine& line, GridStaff& sides,
 		                           const std::string& empty, int maxxcount,
-		                           int maxvcount, int maxhcount, int maxfcount);
+		                           int maxfingcount, int maxvcount,
+		                           int maxhcount, int maxfcount);
 		void transferSides        (HumdrumLine& line, GridPart& sides,
 		                           int partindex, const std::string& empty,
 		                           int maxxcount, int maxvcount, int maxhcount,
@@ -4951,6 +4959,7 @@ class GridSlice : public std::vector<GridPart*> {
 		int getHarmonyCount       (int partindex, int staffindex = -1);
 		int getXmlidCount         (int partindex, int staffindex = -1);
 		int getDynamicsCount      (int partindex, int staffindex = -1);
+		int getFingeringCount     (int partindex, int staffindex = -1);
 		int getFiguredBassCount   (int partindex, int staffindex = -1);
 		void addToken             (const std::string& tok, int parti, int staffi, int voicei);
 
@@ -5022,13 +5031,16 @@ class HumGrid : public std::vector<GridMeasure*> {
 		bool transferTokens             (HumdrumFile& outfile, int startbarnum = 0, const string& interp = "**kern");
 		int  getHarmonyCount            (int partindex);
 		int  getDynamicsCount           (int partindex);
+		int  getFingeringCount          (int partindex, int staffindex);
 		int  getFiguredBassCount        (int partindex);
 		int  getXmlidCount              (int partindex);
 		int  getVerseCount              (int partindex, int staffindex);
 		bool hasDynamics                (int partindex);
+		bool hasFingering               (int partindex, int staffindex);
 		bool hasXmlids                  (int partindex);
 		bool hasFiguredBass             (int partindex);
 		void setDynamicsPresent         (int partindex);
+		void setFingeringPresent        (int partindex, int staffindex);
 		void setXmlidsPresent           (int partindex);
 		void setFiguredBassPresent      (int partindex);
 		void setHarmonyPresent          (int partindex);
@@ -5121,6 +5133,7 @@ class HumGrid : public std::vector<GridMeasure*> {
 	private:
 		std::vector<GridSlice*>       m_allslices;
 		std::vector<std::vector<int>> m_verseCount;
+		std::vector<std::vector<bool>> m_fingering;
 		std::vector<int>              m_harmonyCount;
 		bool                          m_pickup;
 		std::vector<bool>             m_dynamics;
@@ -10286,6 +10299,7 @@ class Tool_musicxml2hum : public HumTool {
 		int  addHarmony        (GridPart* oart, MxmlEvent* event, HumNum nowtime, int partindex);
 		void addDynamic        (GridPart* part, MxmlEvent* event, int partindex);
 		void addHairpinEnding  (GridPart* part, MxmlEvent* event, int partindex);
+		int  addFingering      (GridStaff* staff, MxmlEvent* event);
 		int  addFiguredBass    (GridPart* part, MxmlEvent* event, HumNum nowtime, int partindex);
 		void addTexts          (GridSlice* slice, GridMeasure* measure, int partindex,
 		                        int staffindex, int voiceindex, MxmlEvent* event);
@@ -10300,6 +10314,8 @@ class Tool_musicxml2hum : public HumTool {
 		int         getHarmonyOffset(pugi::xml_node hnode);
 		std::string getHarmonyString(pugi::xml_node hnode);
 		std::string getDynamicString(pugi::xml_node element);
+		std::string getFingeringString(MxmlEvent* event);
+		std::string getNoteFingeringString(MxmlEvent* event);
 		std::string getDynamicsParameters(pugi::xml_node element);
 		std::string getFiguredBassString(pugi::xml_node element);
 		std::string getFiguredBassParameters(pugi::xml_node element);
@@ -12271,4 +12287,3 @@ class Tool_vcross : public HumTool {
 
 
 #endif /* _HUMLIB_H_INCLUDED */
-

@@ -10150,6 +10150,11 @@ GridSide::~GridSide(void) {
 		delete m_harmony;
 		m_harmony = NULL;
 	}
+
+	if (m_fingering) {
+		delete m_fingering;
+		m_fingering = NULL;
+	}
 }
 
 
@@ -10252,6 +10257,41 @@ void GridSide::setHarmony(HTp token) {
 void GridSide::setHarmony(const string& token) {
 	HTp newtoken = new HumdrumToken(token);
 	setHarmony(newtoken);
+}
+
+
+//////////////////////////////
+//
+// GridSide::getFingeringCount --
+//
+
+int GridSide::getFingeringCount(void) {
+	if (m_fingering == NULL) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+
+
+//////////////////////////////
+//
+// GridSide::setFingering --
+//
+
+void GridSide::setFingering(HTp token) {
+	if (m_fingering) {
+		delete m_fingering;
+		m_fingering = NULL;
+	}
+	m_fingering = token;
+}
+
+
+void GridSide::setFingering(const string& token) {
+	HTp newtoken = new HumdrumToken(token);
+	setFingering(newtoken);
 }
 
 
@@ -10378,6 +10418,17 @@ void GridSide::detachFiguredBass(void) {
 
 
 
+///////////////////////////
+//
+// GridSide::detachFingering --
+//
+
+void GridSide::detachFingering(void) {
+	m_fingering = NULL;
+}
+
+
+
 //////////////////////////////
 //
 // GridSide::getHarmony --
@@ -10407,6 +10458,17 @@ HTp GridSide::getXmlid(void) {
 
 HTp GridSide::getDynamics(void) {
 	return m_dynamics;
+}
+
+
+
+//////////////////////////////
+//
+// GridSide::getFingering --
+//
+
+HTp GridSide::getFingering(void) {
+	return m_fingering;
 }
 
 
@@ -10485,6 +10547,10 @@ ostream& operator<<(ostream& output, GridSide* side) {
 
 	if (side->getXmlidCount() > 0) {
 		output << "xmlid:" << side->getXmlid();
+	}
+
+	if (side->getFingeringCount() > 0) {
+		output << "fing:" << side->getFingering();
 	}
 
 	output << "] ";
@@ -10834,11 +10900,12 @@ void GridSlice::transferTokens(HumdrumFile& outfile, bool recip) {
 			}
 
 			int maxxcount = getXmlidCount(p, s);
+			int maxfingcount = getFingeringCount(p, s);
 			int maxvcount = getVerseCount(p, s);
 			int maxhcount = getHarmonyCount(p, s);
 			int maxfcount = getFiguredBassCount(p, s);
 			if (hasSpines()) {
-				transferSides(*line, staff, empty, maxxcount, maxvcount, maxhcount, maxfcount);
+				transferSides(*line, staff, empty, maxxcount, maxfingcount, maxvcount, maxhcount, maxfcount);
 			}
 		}
 
@@ -10942,6 +11009,25 @@ int GridSlice::getXmlidCount(int partindex, int staffindex) {
 	}
 	// should probably adjust to staffindex later:
 	return grid->getXmlidCount(partindex);
+}
+
+
+
+//////////////////////////////
+//
+// GridSlice::getFingeringCount -- Return 0 if no fingering; otherwise,
+//     typically returns 1.  Fingering is a staff-level side spine.
+//
+
+int GridSlice::getFingeringCount(int partindex, int staffindex) {
+	HumGrid* grid = getOwner();
+	if (!grid) {
+		return 0;
+	}
+	if (staffindex < 0) {
+		return 0;
+	}
+	return grid->getFingeringCount(partindex, staffindex);
 }
 
 
@@ -11072,7 +11158,8 @@ void GridSlice::transferSides(HumdrumLine& line, GridPart& sides,
 
 // this version is used to transfer Sides from the Staff
 void GridSlice::transferSides(HumdrumLine& line, GridStaff& sides,
-		const string& empty, int maxxcount, int maxvcount, int maxhcount, int maxfcount) {
+		const string& empty, int maxxcount, int maxfingcount,
+		int maxvcount, int maxhcount, int maxfcount) {
 
 	// existing verses:
 	int vcount = sides.getVerseCount();
@@ -11090,6 +11177,17 @@ void GridSlice::transferSides(HumdrumLine& line, GridStaff& sides,
 		if (xmlid) {
 			line.appendToken(xmlid);
 			sides.detachXmlid();
+		} else {
+			newtoken = new HumdrumToken(empty);
+			line.appendToken(newtoken);
+		}
+	}
+
+	if (maxfingcount > 0) {
+		HTp fingering = sides.getFingering();
+		if (fingering) {
+			line.appendToken(fingering);
+			sides.detachFingering();
 		} else {
 			newtoken = new HumdrumToken(empty);
 			line.appendToken(newtoken);
@@ -12304,6 +12402,7 @@ void HumAddress::setSubtrackCount(int count) {
 HumGrid::HumGrid(void) {
 	// Limited to 100 parts:
 	m_verseCount.resize(100);
+	m_fingering.resize(100);
 	m_harmonyCount.resize(100);
 	m_dynamics.resize(100);
 	m_xmlids.resize(100);
@@ -12442,6 +12541,17 @@ int HumGrid::getDynamicsCount(int partindex) {
 
 //////////////////////////////
 //
+// HumGrid::getFingeringCount --
+//
+
+int HumGrid::getFingeringCount(int partindex, int staffindex) {
+	return hasFingering(partindex, staffindex) ? 1 : 0;
+}
+
+
+
+//////////////////////////////
+//
 // HumGrid::getFiguredBassCount --
 //
 
@@ -12518,6 +12628,25 @@ bool HumGrid::hasDynamics(int partindex) {
 
 //////////////////////////////
 //
+// HumGrid::hasFingering -- Return true if there is any fingering
+//     for the given part/staff.
+//
+
+bool HumGrid::hasFingering(int partindex, int staffindex) {
+	if ((partindex < 0) || (partindex >= (int)m_fingering.size())) {
+		return false;
+	}
+	int staffnumber = staffindex + 1;
+	if ((staffnumber < 1) || (staffnumber >= (int)m_fingering[partindex].size())) {
+		return false;
+	}
+	return m_fingering[partindex][staffnumber];
+}
+
+
+
+//////////////////////////////
+//
 // HumGrid::hasFiguredBass -- Return true if there is any figured bass for the part.
 //
 
@@ -12540,6 +12669,35 @@ void HumGrid::setDynamicsPresent(int partindex) {
 		return;
 	}
 	m_dynamics[partindex] = true;
+}
+
+
+
+//////////////////////////////
+//
+// HumGrid::setFingeringPresent -- Indicate that staff needs a **fing spine.
+//
+
+void HumGrid::setFingeringPresent(int partindex, int staffindex) {
+	if (partindex < 0) {
+		return;
+	}
+	int staffnumber = staffindex + 1;
+	if (staffnumber < 1) {
+		return;
+	}
+	int partsize = (int)m_fingering.size();
+	if (partindex >= partsize) {
+		m_fingering.resize(partindex + 1);
+	}
+	int staffcount = (int)m_fingering[partindex].size();
+	if (staffnumber >= staffcount) {
+		m_fingering[partindex].resize(staffnumber + 1);
+		for (int i=staffcount; i<=staffnumber; i++) {
+			m_fingering[partindex][i] = false;
+		}
+	}
+	m_fingering[partindex][staffnumber] = true;
 }
 
 
@@ -15047,6 +15205,11 @@ void HumGrid::insertExInterpSides(HLp line, int part, int staff) {
 		}
 	}
 
+	if ((staff >= 0) && hasFingering(part, staff)) {
+		HTp token = new HumdrumToken("**fing");
+		line->appendToken(token);
+	}
+
 	if (staff >= 0) {
 		int versecount = getVerseCount(part, staff); // verses related to staff
 		for (int i=0; i<versecount; i++) {
@@ -15207,6 +15370,11 @@ void HumGrid::insertSideNullInterpretations(HLp line,
 			line->appendToken(token);
 		}
 
+		if (hasFingering(part, staff)) {
+			token = new HumdrumToken("*");
+			line->appendToken(token);
+		}
+
 		int versecount = getVerseCount(part, staff);
 		for (int i=0; i<versecount; i++) {
 			token = new HumdrumToken("*");
@@ -15252,6 +15420,12 @@ void HumGrid::insertSidePartInfo(HLp line, int part, int staff) {
 
 		int xmlidcount = getXmlidCount(part);
 		for (int i=0; i<xmlidcount; i++) {
+			text = "*part" + to_string(part+1);
+			token = new HumdrumToken(text);
+			line->appendToken(token);
+		}
+
+		if (hasFingering(part, staff)) {
 			text = "*part" + to_string(part+1);
 			token = new HumdrumToken(text);
 			line->appendToken(token);
@@ -15367,6 +15541,16 @@ void HumGrid::insertSideStaffInfo(HLp line, int part, int staff,
 		line->appendToken(token);
 	}
 
+	if (hasFingering(part, staff)) {
+		if (staffnum > 0) {
+			text = "*staff" + to_string(staffnum);
+			token = new HumdrumToken(text);
+		} else {
+			token = new HumdrumToken("*");
+		}
+		line->appendToken(token);
+	}
+
 	int versecount = getVerseCount(part, staff);
 	for (int i=0; i<versecount; i++) {
 		if (staffnum > 0) {
@@ -15456,6 +15640,11 @@ void HumGrid::insertSideTerminals(HLp line, int part, int staff) {
 	} else {
 
 		if (hasXmlids(part)) {
+			token = new HumdrumToken("*-");
+			line->appendToken(token);
+		}
+
+		if (hasFingering(part, staff)) {
 			token = new HumdrumToken("*-");
 			line->appendToken(token);
 		}
@@ -115510,6 +115699,14 @@ void Tool_musicxml2hum::addEvent(GridSlice* slice, GridMeasure* outdata, MxmlEve
 		cerr << endl;
 	}
 
+	int fingcount = addFingering(slice->at(partindex)->at(staffindex), event);
+	if (fingcount > 0) {
+		HumGrid* grid = slice->getOwner();
+		if (grid) {
+			grid->setFingeringPresent(partindex, staffindex);
+		}
+	}
+
 	int vcount = addLyrics(slice->at(partindex)->at(staffindex), event);
 
 	if (vcount > 0) {
@@ -117046,6 +117243,107 @@ string Tool_musicxml2hum::getHarmonyString(xml_node hnode) {
 	}
 
 	string output = cleanSpaces(ss.str());
+	return output;
+}
+
+
+
+//////////////////////////////
+//
+// Tool_musicxml2hum::addFingering --
+//
+
+int Tool_musicxml2hum::addFingering(GridStaff* staff, MxmlEvent* event) {
+	string fingering = getFingeringString(event);
+	if (fingering.empty()) {
+		return 0;
+	}
+	staff->setFingering(fingering);
+	return 1;
+}
+
+
+
+//////////////////////////////
+//
+// Tool_musicxml2hum::getFingeringString --
+//
+
+string Tool_musicxml2hum::getFingeringString(MxmlEvent* event) {
+	vector<string> values;
+	string value = getNoteFingeringString(event);
+	if (!value.empty()) {
+		values.push_back(value);
+	}
+
+	if (event->isChord()) {
+		vector<MxmlEvent*> links = event->getLinkedNotes();
+		for (int i=0; i<(int)links.size(); i++) {
+			value = getNoteFingeringString(links[i]);
+			if (!value.empty()) {
+				values.push_back(value);
+			}
+		}
+	}
+
+	string output;
+	for (int i=0; i<(int)values.size(); i++) {
+		if (i > 0) {
+			output += " ";
+		}
+		output += values[i];
+	}
+	return output;
+}
+
+
+
+//////////////////////////////
+//
+// Tool_musicxml2hum::getNoteFingeringString --
+//
+
+string Tool_musicxml2hum::getNoteFingeringString(MxmlEvent* event) {
+	xml_node node = event->getNode();
+	if (!node) {
+		return "";
+	}
+
+	vector<string> values;
+	xml_node child = node.first_child();
+	while (child) {
+		if (!nodeType(child, "notations")) {
+			child = child.next_sibling();
+			continue;
+		}
+		xml_node grandchild = child.first_child();
+		while (grandchild) {
+			if (!nodeType(grandchild, "technical")) {
+				grandchild = grandchild.next_sibling();
+				continue;
+			}
+			xml_node item = grandchild.first_child();
+			while (item) {
+				if (nodeType(item, "fingering")) {
+					string value = cleanSpaces(item.child_value());
+					if (!value.empty()) {
+						values.push_back(value);
+					}
+				}
+				item = item.next_sibling();
+			}
+			grandchild = grandchild.next_sibling();
+		}
+		child = child.next_sibling();
+	}
+
+	string output;
+	for (int i=0; i<(int)values.size(); i++) {
+		if (i > 0) {
+			output += " ";
+		}
+		output += values[i];
+	}
 	return output;
 }
 
