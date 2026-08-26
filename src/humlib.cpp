@@ -116489,6 +116489,9 @@ void Tool_musicxml2hum::addDynamic(GridPart* part, MxmlEvent* event, int partind
 				continue;
 			}
 			string dstring = getDynamicString(dynamic);
+			if (dstring.empty()) {
+				continue;
+			}
 			if (!tok) {
 				tok = new HumdrumToken(dstring);
 			} else {
@@ -116836,7 +116839,13 @@ string Tool_musicxml2hum::getHairpinString(xml_node element, int partindex) {
 
 string Tool_musicxml2hum::getDynamicString(xml_node element) {
 
-	if (nodeType(element, "f")) {
+	if (nodeType(element, "other-dynamics")) {
+		string value = cleanSpaces(element.child_value());
+		if (value.empty() || value == "other-dynamics") {
+			return "";
+		}
+		return "???";
+	} else if (nodeType(element, "f")) {
 		return "f";
 	} else if (nodeType(element, "p")) {
 		return "p";
